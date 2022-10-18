@@ -1,0 +1,3 @@
+	DAQ stopped: 1666078469
+	Total Measuring time: 7 s  = 0.00194444 h
+ 	Total Number of Events Measured = 2000 

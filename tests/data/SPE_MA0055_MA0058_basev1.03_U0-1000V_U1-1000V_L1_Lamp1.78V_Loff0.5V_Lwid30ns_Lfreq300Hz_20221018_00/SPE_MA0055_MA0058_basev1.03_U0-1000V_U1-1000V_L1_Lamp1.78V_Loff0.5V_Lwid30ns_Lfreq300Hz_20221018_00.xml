@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<settings author="Alexander Bismark" date="2022-10-18">
+  <!-- global Settings for the measurement--> 
+  <global>
+    <source>None</source>       			 							 <!-- What is measured? -->
+    <notes>2 Inch PMTs MarmotX</notes>                  	    					 	<!-- Comments -->
+    <user>Alex</user>                                     						 <!-- Last user which used the ADC-->
+    <path>/home/marmotx/PMT_DAQ/data/test/</path>      				 <!-- Path -->
+    <daq_version>5.0.0</daq_version>                        						 	<!-- DAQ Version-->
+    <nb_evts>2000</nb_evts>                             							 <!-- Number of events-->
+    <nb_evts_per_file>500000</nb_evts_per_file>           							
+ <!-- Number of events/file-->
+    <store_data>1</store_data>                             							 <!-- Store Data: 0: No, 1:ROOT, 2:.txt, 3: binary-->
+    <displaytime>1</displaytime>                        							 <!-- Status output -->
+  </global>
+
+  <!--*************************************************************************************************** -->
+  <!-- ADC CAEN v1730 specific settings -->
+  <adc>	
+    <!-- global ADC settings -->
+    <global>
+      <ADCType>2</ADCType>														 <!-- Which ADC 0: 1720 1: 1724 2:1730D -->
+      <nb_modules>1</nb_modules>
+      <nb_chs>8</nb_chs>                                           				 <!-- **Total number of channels -->
+      <link_in_chain>0</link_in_chain>                                                           <!-- Position of the board in the link -->
+      <address_0>55550000</address_0>				  							 <!-- Adress of the module-->
+      <!-- <address_1>00000000</address_1> -->	
+      <!-- Activate channels to read out -->
+      	<ch_0>15470</ch_0>                       		   				 <!-- 0 = off, Number = treshold for trigger setting -->
+      	<ch_1>15470</ch_1>
+     	<ch_2>0</ch_2>                            
+      	<ch_3>0</ch_3>                           
+      	<ch_4>0</ch_4>                          
+      	<ch_5>0</ch_5>                         
+      	<ch_6>0</ch_6>                        
+      	<ch_7>0</ch_7>
+
+        <ch_0_pol>1</ch_0_pol>                                       <!-- Channel polarity: 0 = Positive, 1 = Negative -->
+        <ch_1_pol>1</ch_1_pol>
+        <ch_2_pol>1</ch_2_pol>
+        <ch_3_pol>1</ch_3_pol>
+        <ch_4_pol>1</ch_4_pol>
+        <ch_5_pol>1</ch_5_pol>
+        <ch_6_pol>1</ch_6_pol>
+        <ch_7_pol>1</ch_7_pol>
+        
+
+      <!-- !!!All Events are reduced by 10 Samples due to DAC Problems in the last samples!!!! -->
+      <memoryorganisation>64</memoryorganisation>  								 <!-- **Blockorganisation of the ADC-->
+      <custom_size>250</custom_size>      										 <!-- **Custom event size in samples (must be < nb_samples_per_event) -->
+      <posttrigger>150</posttrigger> 											 <!-- **samples after trigger -->
+      <sampling_freq>500000000</sampling_freq>								     <!-- **sampling frequency -->
+      <voltage_range>2.0</voltage_range>										 <!-- **voltage range of ADC/DAC -->
+      <sample_size_ADC>14</sample_size_ADC>						 				 <!-- **sampling width in bits (ADC) -->
+      <sample_size_DAC>16</sample_size_DAC>										 <!-- **sampling width in bits (DAC) -->
+      <baseline>15500</baseline>  												 <!-- **position of baseline (channels) -->	
+      <!-- **If baseline is set to 0, set each channels separetly** -->
+      <baseline_0>15500</baseline_0>
+      <baseline_1>15500</baseline_1>
+      <baseline_2>15500</baseline_2>
+      <baseline_3>15500</baseline_3>
+      <baseline_4>15500</baseline_4>
+      <baseline_5>15500</baseline_5>
+      <baseline_6>15500</baseline_6>
+      <baseline_7>15500</baseline_7>
+      <baselineiteration>15</baselineiteration>									 <!-- **How many iterations for baseline calculation -->
+    </global>
+    
+    <!--Trigger Settings -->
+	<triggerSettings>
+	
+		<trigger>0</trigger>								<!-- **0:ext trig, 1:Software trig, 2: Channel trig, 3: Coincidence trig -->
+	  
+		<!-- Option external trig and trg-out-->
+		<TTL>1</TTL>									<!-- **TTL On (1) or NIM On (0) -->
+   
+		<!-- Option Software Trig-->
+		<SoftwareRate>700</SoftwareRate>						<!-- **Rate of the Software Trigger in Hz -->
+    
+		<!-- Option Channel Trig v1730D-->	
+												<!-- (coupled channels for board trigger: two adjacent channels) logic0: ch0 and ch1 etc-->
+		<logic0>-1</logic0>								<!-- How to proceed if channel is above treshold: 0: Or : 1: only CH(n) 2:only CH(n+1) 3: And  -1:Deactivated-->
+		<logic1>-1</logic1>
+		<logic2>-1</logic2>  
+		<logic3>-1</logic3>
+    	
+		<!-- Option Channel Trig v1724/v1720-->
+		<trig0>0</trig0>								<!-- Which Channel generates a board trigger 0: Deactivated 1:Activated-->
+		<trig1>0</trig1>
+		<trig2>0</trig2>
+		<trig3>0</trig3>
+		<trig4>0</trig4>
+		<trig5>0</trig5>
+		<trig6>0</trig6>
+		<trig7>0</trig7>
+		
+       		<!-- Option Coinciddence Trigger -->
+      	  	<coincidencelength>0</coincidencelength>					<!-- window for a coincidence event units: 125MHz Clock-->
+		<numberChannels>1</numberChannels>						<!-- how many channels should be over the programmed treshold -->
+	    
+   </triggerSettings>
+   
+    <!--Zero Length Encoding -->
+    <!--If ZLE is active, do not forget to set the trigger threshold for each channels! -->
+    <ZLE>
+	<ZLEActivated>0</ZLEActivated>   
+	<ZLE_Left>50</ZLE_Left>									<!-- Acquired samples before the threshold -->	
+    	<ZLE_Right>150</ZLE_Right>                                  <!-- Acquired samples after the threshold -->
+    </ZLE>
+ </adc>  
+ 
+   <!-- Settings for graphical display "Oscilloscope mode" -->
+ <graphics>
+   <ydisplay>2</ydisplay>									<!-- ** 0:standard, 1:manual, 2:auto -->
+   <yaxis_low>9980</yaxis_low>								<!-- ** lower border of y-axis display -->
+   <yaxis_high>10020</yaxis_high>							<!-- ** upper border -->
+ </graphics>
+</settings>
