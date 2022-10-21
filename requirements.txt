@@ -1,0 +1,6 @@
+numpy
+pandas
+uproot==3.12.0
+tqdm
+pytest
+matplotlib
