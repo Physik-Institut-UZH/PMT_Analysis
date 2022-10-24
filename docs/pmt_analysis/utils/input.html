@@ -73,8 +73,16 @@ class ADCRawData:
         elif self.verbose:
             print(&#39;Selected following files to be loaded:&#39;)
             print(*[el.split(os.sep)[-1] for el in self.raw_input_fileslist], sep=&#34;\n&#34;)
+        # Define conversion factors depending on ADC type
+        self.get_conversion_factors(adc_type)
 
-        # Conversion factors depending on ADC type
+    def get_conversion_factors(self, adc_type: str):
+        &#34;&#34;&#34;Define global conversion factors depending on ADC type.
+
+        Args:
+            adc_type: ADC model used for the data acquisition. Options: `v1724`, `v1730d`.
+        &#34;&#34;&#34;
+        self.elementary_charge = 1.60218e-19  # electron charge
         if str(adc_type).lower() in [&#39;v1730d&#39;, &#39;v1730&#39;, &#39;1730&#39;, &#39;1730d&#39;]:  # CAEN V1730D
             self.adc_f = 500e6  # ADC sampling frequency: 500 MS/s digitization speed (2 ns bins)
             self.adc_r = 2.0 / 2 ** 14  # ADC resolution in volts per bin: 14 bit ADC, 2V voltage range
@@ -89,7 +97,6 @@ class ADCRawData:
             raise ValueError(
                 &#39;{} is no valid option for `adc_type`. Select from (`v1724`, `v1730d`).&#39;.format(adc_type))
         # Conversion factor pulse area in ADC units to charge in units of elementary charge.
-        self.elementary_charge = 1.60218e-19  # electron charge
         self.adc_area_to_e = self.adc_r / (self.adc_f * self.adc_z * self.adc_a * self.elementary_charge)
 
     def set_run_conditions(self):
@@ -102,7 +109,7 @@ class ADCRawData:
         &#34;&#34;&#34;Find name of unique available tree in ROOT files to be loaded.
 
         Returns:
-            Unique ROOT tree name.
+            tree: Unique ROOT tree name.
         &#34;&#34;&#34;
         # Iterate over selected files.
         for i, input_file in enumerate(self.raw_input_fileslist):
@@ -127,8 +134,8 @@ class ADCRawData:
             raise ValueError(&#39;Multiple ({}) trees found in selected ROOT file.&#39;
                              &#39;Specify single tree to be loaded.&#39;.format(len(trees)))
         else:
-            tree = trees[0]
-        return str(tree)
+            tree = str(trees[0])
+        return tree
 
     def get_branches(self, tree: Optional[str] = None) -&gt; np.ndarray:
         &#34;&#34;&#34;Find branch names in ROOT files to be loaded.
@@ -137,7 +144,7 @@ class ADCRawData:
             tree: Name of the ROOT tree to be inspected. If `None` deduce with `get_trees` function.
 
         Returns:
-            Array with branch names in selected ROOT files.
+            branches: Array with branch names in selected ROOT files.
         &#34;&#34;&#34;
         # Define tree to be inspected.
         if tree is None:
@@ -168,8 +175,8 @@ class ADCRawData:
             branch: Branch of ROOT file to be loaded. Also allows for input of an ADC channel number (int).
             tree: ROOT tree to load. If `None` deduce with `get_trees()` function.
         Returns:
-            Array with data of selected branch. Typically, Unix timestamp for `branch = &#39;Time&#39;` or ADC data of
-                selected channel, e.g. waveforms of channel 0 for `branch = &#39;wf0&#39;` or `branch = 0`.
+            chunk_collect: Array with data of selected branch. Typically, Unix timestamp for `branch = &#39;Time&#39;` or
+                ADC data of selected channel, e.g. waveforms of channel 0 for `branch = &#39;wf0&#39;` or `branch = 0`.
         &#34;&#34;&#34;
         # Define tree to be inspected.
         if tree is None:
@@ -291,8 +298,16 @@ all ROOT files in <code>raw_input_path</code>.</dd>
         elif self.verbose:
             print(&#39;Selected following files to be loaded:&#39;)
             print(*[el.split(os.sep)[-1] for el in self.raw_input_fileslist], sep=&#34;\n&#34;)
+        # Define conversion factors depending on ADC type
+        self.get_conversion_factors(adc_type)
 
-        # Conversion factors depending on ADC type
+    def get_conversion_factors(self, adc_type: str):
+        &#34;&#34;&#34;Define global conversion factors depending on ADC type.
+
+        Args:
+            adc_type: ADC model used for the data acquisition. Options: `v1724`, `v1730d`.
+        &#34;&#34;&#34;
+        self.elementary_charge = 1.60218e-19  # electron charge
         if str(adc_type).lower() in [&#39;v1730d&#39;, &#39;v1730&#39;, &#39;1730&#39;, &#39;1730d&#39;]:  # CAEN V1730D
             self.adc_f = 500e6  # ADC sampling frequency: 500 MS/s digitization speed (2 ns bins)
             self.adc_r = 2.0 / 2 ** 14  # ADC resolution in volts per bin: 14 bit ADC, 2V voltage range
@@ -307,7 +322,6 @@ all ROOT files in <code>raw_input_path</code>.</dd>
             raise ValueError(
                 &#39;{} is no valid option for `adc_type`. Select from (`v1724`, `v1730d`).&#39;.format(adc_type))
         # Conversion factor pulse area in ADC units to charge in units of elementary charge.
-        self.elementary_charge = 1.60218e-19  # electron charge
         self.adc_area_to_e = self.adc_r / (self.adc_f * self.adc_z * self.adc_a * self.elementary_charge)
 
     def set_run_conditions(self):
@@ -320,7 +334,7 @@ all ROOT files in <code>raw_input_path</code>.</dd>
         &#34;&#34;&#34;Find name of unique available tree in ROOT files to be loaded.
 
         Returns:
-            Unique ROOT tree name.
+            tree: Unique ROOT tree name.
         &#34;&#34;&#34;
         # Iterate over selected files.
         for i, input_file in enumerate(self.raw_input_fileslist):
@@ -345,8 +359,8 @@ all ROOT files in <code>raw_input_path</code>.</dd>
             raise ValueError(&#39;Multiple ({}) trees found in selected ROOT file.&#39;
                              &#39;Specify single tree to be loaded.&#39;.format(len(trees)))
         else:
-            tree = trees[0]
-        return str(tree)
+            tree = str(trees[0])
+        return tree
 
     def get_branches(self, tree: Optional[str] = None) -&gt; np.ndarray:
         &#34;&#34;&#34;Find branch names in ROOT files to be loaded.
@@ -355,7 +369,7 @@ all ROOT files in <code>raw_input_path</code>.</dd>
             tree: Name of the ROOT tree to be inspected. If `None` deduce with `get_trees` function.
 
         Returns:
-            Array with branch names in selected ROOT files.
+            branches: Array with branch names in selected ROOT files.
         &#34;&#34;&#34;
         # Define tree to be inspected.
         if tree is None:
@@ -386,8 +400,8 @@ all ROOT files in <code>raw_input_path</code>.</dd>
             branch: Branch of ROOT file to be loaded. Also allows for input of an ADC channel number (int).
             tree: ROOT tree to load. If `None` deduce with `get_trees()` function.
         Returns:
-            Array with data of selected branch. Typically, Unix timestamp for `branch = &#39;Time&#39;` or ADC data of
-                selected channel, e.g. waveforms of channel 0 for `branch = &#39;wf0&#39;` or `branch = 0`.
+            chunk_collect: Array with data of selected branch. Typically, Unix timestamp for `branch = &#39;Time&#39;` or
+                ADC data of selected channel, e.g. waveforms of channel 0 for `branch = &#39;wf0&#39;` or `branch = 0`.
         &#34;&#34;&#34;
         # Define tree to be inspected.
         if tree is None:
@@ -431,8 +445,11 @@ all ROOT files in <code>raw_input_path</code>.</dd>
 <dd>ROOT tree to load. If <code>None</code> deduce with <code>get_trees()</code> function.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>Array with data of selected branch. Typically, Unix timestamp for <code>branch = 'Time'</code> or ADC data of
-selected channel, e.g. waveforms of channel 0 for <code>branch = 'wf0'</code> or <code>branch = 0</code>.</p></div>
+<dl>
+<dt><code>chunk_collect</code></dt>
+<dd>Array with data of selected branch. Typically, Unix timestamp for <code>branch = 'Time'</code> or
+ADC data of selected channel, e.g. waveforms of channel 0 for <code>branch = 'wf0'</code> or <code>branch = 0</code>.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -444,8 +461,8 @@ selected channel, e.g. waveforms of channel 0 for <code>branch = 'wf0'</code> or
         branch: Branch of ROOT file to be loaded. Also allows for input of an ADC channel number (int).
         tree: ROOT tree to load. If `None` deduce with `get_trees()` function.
     Returns:
-        Array with data of selected branch. Typically, Unix timestamp for `branch = &#39;Time&#39;` or ADC data of
-            selected channel, e.g. waveforms of channel 0 for `branch = &#39;wf0&#39;` or `branch = 0`.
+        chunk_collect: Array with data of selected branch. Typically, Unix timestamp for `branch = &#39;Time&#39;` or
+            ADC data of selected channel, e.g. waveforms of channel 0 for `branch = &#39;wf0&#39;` or `branch = 0`.
     &#34;&#34;&#34;
     # Define tree to be inspected.
     if tree is None:
@@ -486,7 +503,10 @@ selected channel, e.g. waveforms of channel 0 for <code>branch = 'wf0'</code> or
 <dd>Name of the ROOT tree to be inspected. If <code>None</code> deduce with <code>get_trees</code> function.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>Array with branch names in selected ROOT files.</p></div>
+<dl>
+<dt><code>branches</code></dt>
+<dd>Array with branch names in selected ROOT files.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -498,7 +518,7 @@ selected channel, e.g. waveforms of channel 0 for <code>branch = 'wf0'</code> or
         tree: Name of the ROOT tree to be inspected. If `None` deduce with `get_trees` function.
 
     Returns:
-        Array with branch names in selected ROOT files.
+        branches: Array with branch names in selected ROOT files.
     &#34;&#34;&#34;
     # Define tree to be inspected.
     if tree is None:
@@ -523,13 +543,54 @@ selected channel, e.g. waveforms of channel 0 for <code>branch = 'wf0'</code> or
     return branches</code></pre>
 </details>
 </dd>
+<dt id="pmt_analysis.utils.input.ADCRawData.get_conversion_factors"><code class="name flex">
+<span>def <span class="ident">get_conversion_factors</span></span>(<span>self, adc_type: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Define global conversion factors depending on ADC type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>adc_type</code></strong></dt>
+<dd>ADC model used for the data acquisition. Options: <code>v1724</code>, <code>v1730d</code>.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_conversion_factors(self, adc_type: str):
+    &#34;&#34;&#34;Define global conversion factors depending on ADC type.
+
+    Args:
+        adc_type: ADC model used for the data acquisition. Options: `v1724`, `v1730d`.
+    &#34;&#34;&#34;
+    self.elementary_charge = 1.60218e-19  # electron charge
+    if str(adc_type).lower() in [&#39;v1730d&#39;, &#39;v1730&#39;, &#39;1730&#39;, &#39;1730d&#39;]:  # CAEN V1730D
+        self.adc_f = 500e6  # ADC sampling frequency: 500 MS/s digitization speed (2 ns bins)
+        self.adc_r = 2.0 / 2 ** 14  # ADC resolution in volts per bin: 14 bit ADC, 2V voltage range
+        self.adc_z = 50  # input impedance: 50 Ohm termination to ground
+        self.adc_a = 10  # amplification factor: 10 times gain into 50 Ohm impedance
+    elif str(adc_type).lower() in [&#39;v1724&#39;, &#39;1724&#39;]:  # CAEN V1730D
+        self.adc_f = 100e6  # ADC sampling frequency: 100 MS/s digitization speed (10 ns bins)
+        self.adc_r = 2.25 / 2 ** 14  # ADC resolution in volts per bin: 14 bit ADC, 2.25V voltage range
+        self.adc_z = 50  # input impedance: 50 Ohm termination to ground
+        self.adc_a = 10  # amplification factor: 10 times gain into 50 Ohm impedance
+    else:
+        raise ValueError(
+            &#39;{} is no valid option for `adc_type`. Select from (`v1724`, `v1730d`).&#39;.format(adc_type))
+    # Conversion factor pulse area in ADC units to charge in units of elementary charge.
+    self.adc_area_to_e = self.adc_r / (self.adc_f * self.adc_z * self.adc_a * self.elementary_charge)</code></pre>
+</details>
+</dd>
 <dt id="pmt_analysis.utils.input.ADCRawData.get_trees"><code class="name flex">
 <span>def <span class="ident">get_trees</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Find name of unique available tree in ROOT files to be loaded.</p>
 <h2 id="returns">Returns</h2>
-<p>Unique ROOT tree name.</p></div>
+<dl>
+<dt><code>tree</code></dt>
+<dd>Unique ROOT tree name.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -538,7 +599,7 @@ selected channel, e.g. waveforms of channel 0 for <code>branch = 'wf0'</code> or
     &#34;&#34;&#34;Find name of unique available tree in ROOT files to be loaded.
 
     Returns:
-        Unique ROOT tree name.
+        tree: Unique ROOT tree name.
     &#34;&#34;&#34;
     # Iterate over selected files.
     for i, input_file in enumerate(self.raw_input_fileslist):
@@ -563,8 +624,8 @@ selected channel, e.g. waveforms of channel 0 for <code>branch = 'wf0'</code> or
         raise ValueError(&#39;Multiple ({}) trees found in selected ROOT file.&#39;
                          &#39;Specify single tree to be loaded.&#39;.format(len(trees)))
     else:
-        tree = trees[0]
-    return str(tree)</code></pre>
+        tree = str(trees[0])
+    return tree</code></pre>
 </details>
 </dd>
 <dt id="pmt_analysis.utils.input.ADCRawData.set_run_conditions"><code class="name flex">
@@ -607,6 +668,7 @@ TODO: fill, extract info from raw_input_path</p></div>
 <ul class="">
 <li><code><a title="pmt_analysis.utils.input.ADCRawData.get_branch_data" href="#pmt_analysis.utils.input.ADCRawData.get_branch_data">get_branch_data</a></code></li>
 <li><code><a title="pmt_analysis.utils.input.ADCRawData.get_branches" href="#pmt_analysis.utils.input.ADCRawData.get_branches">get_branches</a></code></li>
+<li><code><a title="pmt_analysis.utils.input.ADCRawData.get_conversion_factors" href="#pmt_analysis.utils.input.ADCRawData.get_conversion_factors">get_conversion_factors</a></code></li>
 <li><code><a title="pmt_analysis.utils.input.ADCRawData.get_trees" href="#pmt_analysis.utils.input.ADCRawData.get_trees">get_trees</a></code></li>
 <li><code><a title="pmt_analysis.utils.input.ADCRawData.set_run_conditions" href="#pmt_analysis.utils.input.ADCRawData.set_run_conditions">set_run_conditions</a></code></li>
 </ul>

@@ -45,8 +45,16 @@ class ADCRawData:
         elif self.verbose:
             print('Selected following files to be loaded:')
             print(*[el.split(os.sep)[-1] for el in self.raw_input_fileslist], sep="\n")
+        # Define conversion factors depending on ADC type
+        self.get_conversion_factors(adc_type)
 
-        # Conversion factors depending on ADC type
+    def get_conversion_factors(self, adc_type: str):
+        """Define global conversion factors depending on ADC type.
+
+        Args:
+            adc_type: ADC model used for the data acquisition. Options: `v1724`, `v1730d`.
+        """
+        self.elementary_charge = 1.60218e-19  # electron charge
         if str(adc_type).lower() in ['v1730d', 'v1730', '1730', '1730d']:  # CAEN V1730D
             self.adc_f = 500e6  # ADC sampling frequency: 500 MS/s digitization speed (2 ns bins)
             self.adc_r = 2.0 / 2 ** 14  # ADC resolution in volts per bin: 14 bit ADC, 2V voltage range
@@ -61,7 +69,6 @@ class ADCRawData:
             raise ValueError(
                 '{} is no valid option for `adc_type`. Select from (`v1724`, `v1730d`).'.format(adc_type))
         # Conversion factor pulse area in ADC units to charge in units of elementary charge.
-        self.elementary_charge = 1.60218e-19  # electron charge
         self.adc_area_to_e = self.adc_r / (self.adc_f * self.adc_z * self.adc_a * self.elementary_charge)
 
     def set_run_conditions(self):
@@ -74,7 +81,7 @@ class ADCRawData:
         """Find name of unique available tree in ROOT files to be loaded.
 
         Returns:
-            Unique ROOT tree name.
+            tree: Unique ROOT tree name.
         """
         # Iterate over selected files.
         for i, input_file in enumerate(self.raw_input_fileslist):
@@ -99,8 +106,8 @@ class ADCRawData:
             raise ValueError('Multiple ({}) trees found in selected ROOT file.'
                              'Specify single tree to be loaded.'.format(len(trees)))
         else:
-            tree = trees[0]
-        return str(tree)
+            tree = str(trees[0])
+        return tree
 
     def get_branches(self, tree: Optional[str] = None) -> np.ndarray:
         """Find branch names in ROOT files to be loaded.
@@ -109,7 +116,7 @@ class ADCRawData:
             tree: Name of the ROOT tree to be inspected. If `None` deduce with `get_trees` function.
 
         Returns:
-            Array with branch names in selected ROOT files.
+            branches: Array with branch names in selected ROOT files.
         """
         # Define tree to be inspected.
         if tree is None:
@@ -140,8 +147,8 @@ class ADCRawData:
             branch: Branch of ROOT file to be loaded. Also allows for input of an ADC channel number (int).
             tree: ROOT tree to load. If `None` deduce with `get_trees()` function.
         Returns:
-            Array with data of selected branch. Typically, Unix timestamp for `branch = 'Time'` or ADC data of
-                selected channel, e.g. waveforms of channel 0 for `branch = 'wf0'` or `branch = 0`.
+            chunk_collect: Array with data of selected branch. Typically, Unix timestamp for `branch = 'Time'` or
+                ADC data of selected channel, e.g. waveforms of channel 0 for `branch = 'wf0'` or `branch = 0`.
         """
         # Define tree to be inspected.
         if tree is None:

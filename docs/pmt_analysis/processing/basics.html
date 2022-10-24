@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>pmt_analysis.processing.basics API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>pmt_analysis.processing.basics</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import numpy as np
+import pandas as pd
+import warnings
+from typing import Tuple, List, Optional
+
+
+class FixedWindow:
+    &#34;&#34;&#34;Basic processing functions using a fixed window for baseline / peak calculations.
+    Applicable for (externally) triggered data taking, such as during LED calibrations.
+
+    Attributes:
+        bounds_baseline: Lower (included) and upper (excluded) index of window for baseline calculations.
+            Unbound if element(s) `None`.
+        bounds_peak: Lower (included) and upper (excluded) index of window for peak calculations.
+            Unbound if element(s) `None`.
+    &#34;&#34;&#34;
+
+    def __init__(self, bounds_baseline: Tuple[Optional[int], Optional[int]],
+                 bounds_peak: Tuple[Optional[int], Optional[int]]):
+        &#34;&#34;&#34;Init of the FixedWindow class.
+
+        Defines baseline and peak window boundaries.
+
+        Args:
+            bounds_baseline: Lower (included) and upper (excluded) index of window for baseline calculations.
+            bounds_peak: Lower (included) and upper (excluded) index of window for peak calculations.
+        &#34;&#34;&#34;
+        self.bounds_baseline = self.set_bounds(bounds_baseline, &#39;bounds_baseline&#39;)
+        self.bounds_peak = self.set_bounds(bounds_peak, &#39;bounds_peak&#39;)
+
+    def set_bounds(self, input_tuple: Tuple[Optional[int], Optional[int]],
+                   input_tuple_name: str) -&gt; Tuple[Optional[int], Optional[int]]:
+        &#34;&#34;&#34;Check and convert boundary tuples.
+
+        Used for `bounds_baseline` and `bounds_peak`. Assert that tuple of length 2 with integers.
+
+        Args:
+            input_tuple: Tuple to check and convert.
+            input_tuple_name: Name of the tuple, used in error messages.
+
+        Returns:
+            output_tuple: Tuple of length 2 with integers.
+        &#34;&#34;&#34;
+        # Check that iterable is passed.
+        if not hasattr(input_tuple, &#39;__iter__&#39;):
+            raise TypeError(&#39;Expected iterable (ideally tuple) for {}.&#39;.format(input_tuple_name))
+        # Check length of passed iterable.
+        if len(input_tuple) != 2:
+            raise ValueError(&#39;Expected tuple of length 2 for {}.&#39;.format(input_tuple_name))
+        # Convert to list to make mutable.
+        output_list = list(input_tuple)
+        # Try to convert values to int if necessary.
+        for i, el in enumerate(output_list):
+            if (type(el) not in [int, np.int64]) and (el is not None):
+                try:
+                    output_list[i] = int(el)
+                    warnings.warn(&#39;Converted element {} in {} to int. This may lead to unwanted behavior. &#39;
+                                  &#39;Recommended to directly pass tuples of integers.&#39;.format(i, input_tuple_name))
+                except:
+                    raise TypeError(&#39;Expected tuple of integers / Nones for {}.&#39;.format(input_tuple_name))
+        # Convert to tuple to make immutable.
+        output_tuple = tuple(output_list)
+        # Assert that tuple elements of ascending order.
+        if np.all([el is not None for el in output_tuple]) and output_tuple[0] &gt;= output_tuple[1]:
+            raise ValueError(&#39;Elements in {} must be of ascending order or None.format(input_tuple_name)&#39;)
+        return output_tuple
+
+    def get_baseline(self, input_data: np.ndarray) -&gt; np.ndarray:
+        &#34;&#34;&#34;Calculate baselines of individual waveforms.
+
+        Args:
+            input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+        Returns:
+            bsl: Array with baseline values of shape (number of waveforms, ).
+        &#34;&#34;&#34;
+        bsl = np.median(input_data[:, self.bounds_baseline[0]:self.bounds_baseline[-1]], axis=1)
+        return bsl
+
+    def get_baseline_std(self, input_data: np.ndarray) -&gt; np.ndarray:
+        &#34;&#34;&#34;Calculate baseline standard deviations of individual waveforms.
+
+        Args:
+            input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+        Returns:
+            bsl: Array with baseline standard deviation values of shape (number of waveforms, ).
+        &#34;&#34;&#34;
+        bsl_std = np.std(input_data[:, self.bounds_baseline[0]:self.bounds_baseline[-1]], axis=1, ddof=1)
+        return bsl_std
+
+    def get_amplitude(self, input_data: np.ndarray) -&gt; np.ndarray:
+        &#34;&#34;&#34;Calculate naive peak amplitudes as baseline subtracted maximum outlier in window of individual waveforms.
+
+        Args:
+            input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+        Returns:
+            amp_val: Array with amplitude values of shape (number of waveforms, ).
+        &#34;&#34;&#34;
+        bsl_val = self.get_baseline(input_data)
+        min_val = np.min(input_data[:, self.bounds_peak[0]:self.bounds_peak[-1]], axis=1)
+        amp_val = bsl_val - min_val
+        return amp_val
+
+    def get_peak_position(self, input_data: np.ndarray) -&gt; np.ndarray:
+        &#34;&#34;&#34;Calculate naive peak position index as maximum outlier in window of individual waveforms.
+
+        Args:
+            input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+        Returns:
+            amp_val: Array with peak position index values of shape (number of waveforms, ).
+        &#34;&#34;&#34;
+        min_pos = np.argmin(input_data[:, self.bounds_peak[0]:self.bounds_peak[-1]], axis=1)
+        # Correct for lower peak window boundary.
+        # Zero offset if lower boundary None (defined to falsify in boolean or).
+        min_pos_corrected = min_pos + (self.bounds_peak[0] or 0)
+        return min_pos_corrected
+
+    def get_area(self, input_data: np.ndarray) -&gt; np.ndarray:
+        &#34;&#34;&#34;Calculate naive baseline subtracted peak areas.
+
+        Args:
+            input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+        Returns:
+            area_val: Array with peak area values of shape (number of waveforms, ).
+        &#34;&#34;&#34;
+        gross_area = np.sum(input_data[:, self.bounds_peak[0]:self.bounds_peak[-1]], axis=1)
+        window_width_peak = np.sum(np.ones(input_data.shape[1])[self.bounds_peak[0]:self.bounds_peak[-1]])
+        bsl_val = self.get_baseline(input_data)
+        bsl_area = window_width_peak * bsl_val
+        area_val = bsl_area - gross_area
+        return area_val
+
+    def get_basic_properties(self, input_data: np.ndarray,
+                             parameters: List[str] = [&#39;baseline&#39;, &#39;amplitude&#39;, &#39;area&#39;]) -&gt; pd.DataFrame:
+        &#34;&#34;&#34;Calculate basic waveform properties, such as baseline, peak amplitude and area,...
+
+        Args:
+            input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+            parameters: List of names of the parameters to be calculated.
+
+        Returns:
+            df_out: Pandas data frame with parameters of interest as columns.
+        &#34;&#34;&#34;
+        if type(input_data) != np.ndarray:
+            if type(input_data) == list:
+                input_data = np.array(input_data)
+            else:
+                raise TypeError(&#39;input_data must be of type numpy.ndarray.&#39;)
+        if input_data.ndim != 2:
+            raise ValueError(&#39;input_data must have ndim = 2 dimension.&#39;)
+        lower_bounds_list = [self.bounds_peak[0], self.bounds_baseline[0], input_data.shape[1]-1]
+        lower_bounds_list = np.array([el for el in lower_bounds_list if el is not None])
+        lower_bounds_list = lower_bounds_list + input_data.shape[1] * (lower_bounds_list&lt;0)
+        if max(lower_bounds_list) &gt;= input_data.shape[1]:
+            raise ValueError(&#39;A lower window boundary was selected that extends beyond the data array length.&#39;)
+
+        df_out = pd.DataFrame()
+        if &#39;baseline&#39; in parameters:
+            df_out[&#39;baseline&#39;] = self.get_baseline(input_data)
+        if &#39;baseline_std&#39; in parameters:
+            df_out[&#39;baseline_std&#39;] = self.get_baseline_std(input_data)
+        if &#39;amplitude&#39; in parameters:
+            df_out[&#39;amplitude&#39;] = self.get_amplitude(input_data)
+        if &#39;peak_position&#39; in parameters:
+            df_out[&#39;peak_position&#39;] = self.get_peak_position(input_data)
+        if &#39;area&#39; in parameters:
+            df_out[&#39;area&#39;] = self.get_area(input_data)
+        if df_out.shape == (0, 0):
+            warnings.warn(&#34;Output from get_basic_properties seems to be empty.&#34;)
+        return df_out</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="pmt_analysis.processing.basics.FixedWindow"><code class="flex name class">
+<span>class <span class="ident">FixedWindow</span></span>
+<span>(</span><span>bounds_baseline: Tuple[Optional[int], Optional[int]], bounds_peak: Tuple[Optional[int], Optional[int]])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Basic processing functions using a fixed window for baseline / peak calculations.
+Applicable for (externally) triggered data taking, such as during LED calibrations.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>bounds_baseline</code></strong></dt>
+<dd>Lower (included) and upper (excluded) index of window for baseline calculations.
+Unbound if element(s) <code>None</code>.</dd>
+<dt><strong><code>bounds_peak</code></strong></dt>
+<dd>Lower (included) and upper (excluded) index of window for peak calculations.
+Unbound if element(s) <code>None</code>.</dd>
+</dl>
+<p>Init of the FixedWindow class.</p>
+<p>Defines baseline and peak window boundaries.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bounds_baseline</code></strong></dt>
+<dd>Lower (included) and upper (excluded) index of window for baseline calculations.</dd>
+<dt><strong><code>bounds_peak</code></strong></dt>
+<dd>Lower (included) and upper (excluded) index of window for peak calculations.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FixedWindow:
+    &#34;&#34;&#34;Basic processing functions using a fixed window for baseline / peak calculations.
+    Applicable for (externally) triggered data taking, such as during LED calibrations.
+
+    Attributes:
+        bounds_baseline: Lower (included) and upper (excluded) index of window for baseline calculations.
+            Unbound if element(s) `None`.
+        bounds_peak: Lower (included) and upper (excluded) index of window for peak calculations.
+            Unbound if element(s) `None`.
+    &#34;&#34;&#34;
+
+    def __init__(self, bounds_baseline: Tuple[Optional[int], Optional[int]],
+                 bounds_peak: Tuple[Optional[int], Optional[int]]):
+        &#34;&#34;&#34;Init of the FixedWindow class.
+
+        Defines baseline and peak window boundaries.
+
+        Args:
+            bounds_baseline: Lower (included) and upper (excluded) index of window for baseline calculations.
+            bounds_peak: Lower (included) and upper (excluded) index of window for peak calculations.
+        &#34;&#34;&#34;
+        self.bounds_baseline = self.set_bounds(bounds_baseline, &#39;bounds_baseline&#39;)
+        self.bounds_peak = self.set_bounds(bounds_peak, &#39;bounds_peak&#39;)
+
+    def set_bounds(self, input_tuple: Tuple[Optional[int], Optional[int]],
+                   input_tuple_name: str) -&gt; Tuple[Optional[int], Optional[int]]:
+        &#34;&#34;&#34;Check and convert boundary tuples.
+
+        Used for `bounds_baseline` and `bounds_peak`. Assert that tuple of length 2 with integers.
+
+        Args:
+            input_tuple: Tuple to check and convert.
+            input_tuple_name: Name of the tuple, used in error messages.
+
+        Returns:
+            output_tuple: Tuple of length 2 with integers.
+        &#34;&#34;&#34;
+        # Check that iterable is passed.
+        if not hasattr(input_tuple, &#39;__iter__&#39;):
+            raise TypeError(&#39;Expected iterable (ideally tuple) for {}.&#39;.format(input_tuple_name))
+        # Check length of passed iterable.
+        if len(input_tuple) != 2:
+            raise ValueError(&#39;Expected tuple of length 2 for {}.&#39;.format(input_tuple_name))
+        # Convert to list to make mutable.
+        output_list = list(input_tuple)
+        # Try to convert values to int if necessary.
+        for i, el in enumerate(output_list):
+            if (type(el) not in [int, np.int64]) and (el is not None):
+                try:
+                    output_list[i] = int(el)
+                    warnings.warn(&#39;Converted element {} in {} to int. This may lead to unwanted behavior. &#39;
+                                  &#39;Recommended to directly pass tuples of integers.&#39;.format(i, input_tuple_name))
+                except:
+                    raise TypeError(&#39;Expected tuple of integers / Nones for {}.&#39;.format(input_tuple_name))
+        # Convert to tuple to make immutable.
+        output_tuple = tuple(output_list)
+        # Assert that tuple elements of ascending order.
+        if np.all([el is not None for el in output_tuple]) and output_tuple[0] &gt;= output_tuple[1]:
+            raise ValueError(&#39;Elements in {} must be of ascending order or None.format(input_tuple_name)&#39;)
+        return output_tuple
+
+    def get_baseline(self, input_data: np.ndarray) -&gt; np.ndarray:
+        &#34;&#34;&#34;Calculate baselines of individual waveforms.
+
+        Args:
+            input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+        Returns:
+            bsl: Array with baseline values of shape (number of waveforms, ).
+        &#34;&#34;&#34;
+        bsl = np.median(input_data[:, self.bounds_baseline[0]:self.bounds_baseline[-1]], axis=1)
+        return bsl
+
+    def get_baseline_std(self, input_data: np.ndarray) -&gt; np.ndarray:
+        &#34;&#34;&#34;Calculate baseline standard deviations of individual waveforms.
+
+        Args:
+            input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+        Returns:
+            bsl: Array with baseline standard deviation values of shape (number of waveforms, ).
+        &#34;&#34;&#34;
+        bsl_std = np.std(input_data[:, self.bounds_baseline[0]:self.bounds_baseline[-1]], axis=1, ddof=1)
+        return bsl_std
+
+    def get_amplitude(self, input_data: np.ndarray) -&gt; np.ndarray:
+        &#34;&#34;&#34;Calculate naive peak amplitudes as baseline subtracted maximum outlier in window of individual waveforms.
+
+        Args:
+            input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+        Returns:
+            amp_val: Array with amplitude values of shape (number of waveforms, ).
+        &#34;&#34;&#34;
+        bsl_val = self.get_baseline(input_data)
+        min_val = np.min(input_data[:, self.bounds_peak[0]:self.bounds_peak[-1]], axis=1)
+        amp_val = bsl_val - min_val
+        return amp_val
+
+    def get_peak_position(self, input_data: np.ndarray) -&gt; np.ndarray:
+        &#34;&#34;&#34;Calculate naive peak position index as maximum outlier in window of individual waveforms.
+
+        Args:
+            input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+        Returns:
+            amp_val: Array with peak position index values of shape (number of waveforms, ).
+        &#34;&#34;&#34;
+        min_pos = np.argmin(input_data[:, self.bounds_peak[0]:self.bounds_peak[-1]], axis=1)
+        # Correct for lower peak window boundary.
+        # Zero offset if lower boundary None (defined to falsify in boolean or).
+        min_pos_corrected = min_pos + (self.bounds_peak[0] or 0)
+        return min_pos_corrected
+
+    def get_area(self, input_data: np.ndarray) -&gt; np.ndarray:
+        &#34;&#34;&#34;Calculate naive baseline subtracted peak areas.
+
+        Args:
+            input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+        Returns:
+            area_val: Array with peak area values of shape (number of waveforms, ).
+        &#34;&#34;&#34;
+        gross_area = np.sum(input_data[:, self.bounds_peak[0]:self.bounds_peak[-1]], axis=1)
+        window_width_peak = np.sum(np.ones(input_data.shape[1])[self.bounds_peak[0]:self.bounds_peak[-1]])
+        bsl_val = self.get_baseline(input_data)
+        bsl_area = window_width_peak * bsl_val
+        area_val = bsl_area - gross_area
+        return area_val
+
+    def get_basic_properties(self, input_data: np.ndarray,
+                             parameters: List[str] = [&#39;baseline&#39;, &#39;amplitude&#39;, &#39;area&#39;]) -&gt; pd.DataFrame:
+        &#34;&#34;&#34;Calculate basic waveform properties, such as baseline, peak amplitude and area,...
+
+        Args:
+            input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+            parameters: List of names of the parameters to be calculated.
+
+        Returns:
+            df_out: Pandas data frame with parameters of interest as columns.
+        &#34;&#34;&#34;
+        if type(input_data) != np.ndarray:
+            if type(input_data) == list:
+                input_data = np.array(input_data)
+            else:
+                raise TypeError(&#39;input_data must be of type numpy.ndarray.&#39;)
+        if input_data.ndim != 2:
+            raise ValueError(&#39;input_data must have ndim = 2 dimension.&#39;)
+        lower_bounds_list = [self.bounds_peak[0], self.bounds_baseline[0], input_data.shape[1]-1]
+        lower_bounds_list = np.array([el for el in lower_bounds_list if el is not None])
+        lower_bounds_list = lower_bounds_list + input_data.shape[1] * (lower_bounds_list&lt;0)
+        if max(lower_bounds_list) &gt;= input_data.shape[1]:
+            raise ValueError(&#39;A lower window boundary was selected that extends beyond the data array length.&#39;)
+
+        df_out = pd.DataFrame()
+        if &#39;baseline&#39; in parameters:
+            df_out[&#39;baseline&#39;] = self.get_baseline(input_data)
+        if &#39;baseline_std&#39; in parameters:
+            df_out[&#39;baseline_std&#39;] = self.get_baseline_std(input_data)
+        if &#39;amplitude&#39; in parameters:
+            df_out[&#39;amplitude&#39;] = self.get_amplitude(input_data)
+        if &#39;peak_position&#39; in parameters:
+            df_out[&#39;peak_position&#39;] = self.get_peak_position(input_data)
+        if &#39;area&#39; in parameters:
+            df_out[&#39;area&#39;] = self.get_area(input_data)
+        if df_out.shape == (0, 0):
+            warnings.warn(&#34;Output from get_basic_properties seems to be empty.&#34;)
+        return df_out</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="pmt_analysis.processing.basics.FixedWindow.get_amplitude"><code class="name flex">
+<span>def <span class="ident">get_amplitude</span></span>(<span>self, input_data: numpy.ndarray) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate naive peak amplitudes as baseline subtracted maximum outlier in window of individual waveforms.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>input_data</code></strong></dt>
+<dd>Array with ADC data of shape (number of waveforms, time bins per waveform).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>amp_val</code></dt>
+<dd>Array with amplitude values of shape (number of waveforms, ).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_amplitude(self, input_data: np.ndarray) -&gt; np.ndarray:
+    &#34;&#34;&#34;Calculate naive peak amplitudes as baseline subtracted maximum outlier in window of individual waveforms.
+
+    Args:
+        input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+    Returns:
+        amp_val: Array with amplitude values of shape (number of waveforms, ).
+    &#34;&#34;&#34;
+    bsl_val = self.get_baseline(input_data)
+    min_val = np.min(input_data[:, self.bounds_peak[0]:self.bounds_peak[-1]], axis=1)
+    amp_val = bsl_val - min_val
+    return amp_val</code></pre>
+</details>
+</dd>
+<dt id="pmt_analysis.processing.basics.FixedWindow.get_area"><code class="name flex">
+<span>def <span class="ident">get_area</span></span>(<span>self, input_data: numpy.ndarray) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate naive baseline subtracted peak areas.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>input_data</code></strong></dt>
+<dd>Array with ADC data of shape (number of waveforms, time bins per waveform).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>area_val</code></dt>
+<dd>Array with peak area values of shape (number of waveforms, ).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_area(self, input_data: np.ndarray) -&gt; np.ndarray:
+    &#34;&#34;&#34;Calculate naive baseline subtracted peak areas.
+
+    Args:
+        input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+    Returns:
+        area_val: Array with peak area values of shape (number of waveforms, ).
+    &#34;&#34;&#34;
+    gross_area = np.sum(input_data[:, self.bounds_peak[0]:self.bounds_peak[-1]], axis=1)
+    window_width_peak = np.sum(np.ones(input_data.shape[1])[self.bounds_peak[0]:self.bounds_peak[-1]])
+    bsl_val = self.get_baseline(input_data)
+    bsl_area = window_width_peak * bsl_val
+    area_val = bsl_area - gross_area
+    return area_val</code></pre>
+</details>
+</dd>
+<dt id="pmt_analysis.processing.basics.FixedWindow.get_baseline"><code class="name flex">
+<span>def <span class="ident">get_baseline</span></span>(<span>self, input_data: numpy.ndarray) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate baselines of individual waveforms.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>input_data</code></strong></dt>
+<dd>Array with ADC data of shape (number of waveforms, time bins per waveform).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bsl</code></dt>
+<dd>Array with baseline values of shape (number of waveforms, ).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_baseline(self, input_data: np.ndarray) -&gt; np.ndarray:
+    &#34;&#34;&#34;Calculate baselines of individual waveforms.
+
+    Args:
+        input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+    Returns:
+        bsl: Array with baseline values of shape (number of waveforms, ).
+    &#34;&#34;&#34;
+    bsl = np.median(input_data[:, self.bounds_baseline[0]:self.bounds_baseline[-1]], axis=1)
+    return bsl</code></pre>
+</details>
+</dd>
+<dt id="pmt_analysis.processing.basics.FixedWindow.get_baseline_std"><code class="name flex">
+<span>def <span class="ident">get_baseline_std</span></span>(<span>self, input_data: numpy.ndarray) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate baseline standard deviations of individual waveforms.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>input_data</code></strong></dt>
+<dd>Array with ADC data of shape (number of waveforms, time bins per waveform).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bsl</code></dt>
+<dd>Array with baseline standard deviation values of shape (number of waveforms, ).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_baseline_std(self, input_data: np.ndarray) -&gt; np.ndarray:
+    &#34;&#34;&#34;Calculate baseline standard deviations of individual waveforms.
+
+    Args:
+        input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+    Returns:
+        bsl: Array with baseline standard deviation values of shape (number of waveforms, ).
+    &#34;&#34;&#34;
+    bsl_std = np.std(input_data[:, self.bounds_baseline[0]:self.bounds_baseline[-1]], axis=1, ddof=1)
+    return bsl_std</code></pre>
+</details>
+</dd>
+<dt id="pmt_analysis.processing.basics.FixedWindow.get_basic_properties"><code class="name flex">
+<span>def <span class="ident">get_basic_properties</span></span>(<span>self, input_data: numpy.ndarray, parameters: List[str] = ['baseline', 'amplitude', 'area']) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate basic waveform properties, such as baseline, peak amplitude and area,&hellip;</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>input_data</code></strong></dt>
+<dd>Array with ADC data of shape (number of waveforms, time bins per waveform).</dd>
+<dt><strong><code>parameters</code></strong></dt>
+<dd>List of names of the parameters to be calculated.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>df_out</code></dt>
+<dd>Pandas data frame with parameters of interest as columns.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_basic_properties(self, input_data: np.ndarray,
+                         parameters: List[str] = [&#39;baseline&#39;, &#39;amplitude&#39;, &#39;area&#39;]) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;Calculate basic waveform properties, such as baseline, peak amplitude and area,...
+
+    Args:
+        input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+        parameters: List of names of the parameters to be calculated.
+
+    Returns:
+        df_out: Pandas data frame with parameters of interest as columns.
+    &#34;&#34;&#34;
+    if type(input_data) != np.ndarray:
+        if type(input_data) == list:
+            input_data = np.array(input_data)
+        else:
+            raise TypeError(&#39;input_data must be of type numpy.ndarray.&#39;)
+    if input_data.ndim != 2:
+        raise ValueError(&#39;input_data must have ndim = 2 dimension.&#39;)
+    lower_bounds_list = [self.bounds_peak[0], self.bounds_baseline[0], input_data.shape[1]-1]
+    lower_bounds_list = np.array([el for el in lower_bounds_list if el is not None])
+    lower_bounds_list = lower_bounds_list + input_data.shape[1] * (lower_bounds_list&lt;0)
+    if max(lower_bounds_list) &gt;= input_data.shape[1]:
+        raise ValueError(&#39;A lower window boundary was selected that extends beyond the data array length.&#39;)
+
+    df_out = pd.DataFrame()
+    if &#39;baseline&#39; in parameters:
+        df_out[&#39;baseline&#39;] = self.get_baseline(input_data)
+    if &#39;baseline_std&#39; in parameters:
+        df_out[&#39;baseline_std&#39;] = self.get_baseline_std(input_data)
+    if &#39;amplitude&#39; in parameters:
+        df_out[&#39;amplitude&#39;] = self.get_amplitude(input_data)
+    if &#39;peak_position&#39; in parameters:
+        df_out[&#39;peak_position&#39;] = self.get_peak_position(input_data)
+    if &#39;area&#39; in parameters:
+        df_out[&#39;area&#39;] = self.get_area(input_data)
+    if df_out.shape == (0, 0):
+        warnings.warn(&#34;Output from get_basic_properties seems to be empty.&#34;)
+    return df_out</code></pre>
+</details>
+</dd>
+<dt id="pmt_analysis.processing.basics.FixedWindow.get_peak_position"><code class="name flex">
+<span>def <span class="ident">get_peak_position</span></span>(<span>self, input_data: numpy.ndarray) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate naive peak position index as maximum outlier in window of individual waveforms.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>input_data</code></strong></dt>
+<dd>Array with ADC data of shape (number of waveforms, time bins per waveform).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>amp_val</code></dt>
+<dd>Array with peak position index values of shape (number of waveforms, ).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_peak_position(self, input_data: np.ndarray) -&gt; np.ndarray:
+    &#34;&#34;&#34;Calculate naive peak position index as maximum outlier in window of individual waveforms.
+
+    Args:
+        input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+    Returns:
+        amp_val: Array with peak position index values of shape (number of waveforms, ).
+    &#34;&#34;&#34;
+    min_pos = np.argmin(input_data[:, self.bounds_peak[0]:self.bounds_peak[-1]], axis=1)
+    # Correct for lower peak window boundary.
+    # Zero offset if lower boundary None (defined to falsify in boolean or).
+    min_pos_corrected = min_pos + (self.bounds_peak[0] or 0)
+    return min_pos_corrected</code></pre>
+</details>
+</dd>
+<dt id="pmt_analysis.processing.basics.FixedWindow.set_bounds"><code class="name flex">
+<span>def <span class="ident">set_bounds</span></span>(<span>self, input_tuple: Tuple[Optional[int], Optional[int]], input_tuple_name: str) ‑> Tuple[Optional[int], Optional[int]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Check and convert boundary tuples.</p>
+<p>Used for <code>bounds_baseline</code> and <code>bounds_peak</code>. Assert that tuple of length 2 with integers.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>input_tuple</code></strong></dt>
+<dd>Tuple to check and convert.</dd>
+<dt><strong><code>input_tuple_name</code></strong></dt>
+<dd>Name of the tuple, used in error messages.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>output_tuple</code></dt>
+<dd>Tuple of length 2 with integers.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_bounds(self, input_tuple: Tuple[Optional[int], Optional[int]],
+               input_tuple_name: str) -&gt; Tuple[Optional[int], Optional[int]]:
+    &#34;&#34;&#34;Check and convert boundary tuples.
+
+    Used for `bounds_baseline` and `bounds_peak`. Assert that tuple of length 2 with integers.
+
+    Args:
+        input_tuple: Tuple to check and convert.
+        input_tuple_name: Name of the tuple, used in error messages.
+
+    Returns:
+        output_tuple: Tuple of length 2 with integers.
+    &#34;&#34;&#34;
+    # Check that iterable is passed.
+    if not hasattr(input_tuple, &#39;__iter__&#39;):
+        raise TypeError(&#39;Expected iterable (ideally tuple) for {}.&#39;.format(input_tuple_name))
+    # Check length of passed iterable.
+    if len(input_tuple) != 2:
+        raise ValueError(&#39;Expected tuple of length 2 for {}.&#39;.format(input_tuple_name))
+    # Convert to list to make mutable.
+    output_list = list(input_tuple)
+    # Try to convert values to int if necessary.
+    for i, el in enumerate(output_list):
+        if (type(el) not in [int, np.int64]) and (el is not None):
+            try:
+                output_list[i] = int(el)
+                warnings.warn(&#39;Converted element {} in {} to int. This may lead to unwanted behavior. &#39;
+                              &#39;Recommended to directly pass tuples of integers.&#39;.format(i, input_tuple_name))
+            except:
+                raise TypeError(&#39;Expected tuple of integers / Nones for {}.&#39;.format(input_tuple_name))
+    # Convert to tuple to make immutable.
+    output_tuple = tuple(output_list)
+    # Assert that tuple elements of ascending order.
+    if np.all([el is not None for el in output_tuple]) and output_tuple[0] &gt;= output_tuple[1]:
+        raise ValueError(&#39;Elements in {} must be of ascending order or None.format(input_tuple_name)&#39;)
+    return output_tuple</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="pmt_analysis.processing" href="index.html">pmt_analysis.processing</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="pmt_analysis.processing.basics.FixedWindow" href="#pmt_analysis.processing.basics.FixedWindow">FixedWindow</a></code></h4>
+<ul class="">
+<li><code><a title="pmt_analysis.processing.basics.FixedWindow.get_amplitude" href="#pmt_analysis.processing.basics.FixedWindow.get_amplitude">get_amplitude</a></code></li>
+<li><code><a title="pmt_analysis.processing.basics.FixedWindow.get_area" href="#pmt_analysis.processing.basics.FixedWindow.get_area">get_area</a></code></li>
+<li><code><a title="pmt_analysis.processing.basics.FixedWindow.get_baseline" href="#pmt_analysis.processing.basics.FixedWindow.get_baseline">get_baseline</a></code></li>
+<li><code><a title="pmt_analysis.processing.basics.FixedWindow.get_baseline_std" href="#pmt_analysis.processing.basics.FixedWindow.get_baseline_std">get_baseline_std</a></code></li>
+<li><code><a title="pmt_analysis.processing.basics.FixedWindow.get_basic_properties" href="#pmt_analysis.processing.basics.FixedWindow.get_basic_properties">get_basic_properties</a></code></li>
+<li><code><a title="pmt_analysis.processing.basics.FixedWindow.get_peak_position" href="#pmt_analysis.processing.basics.FixedWindow.get_peak_position">get_peak_position</a></code></li>
+<li><code><a title="pmt_analysis.processing.basics.FixedWindow.set_bounds" href="#pmt_analysis.processing.basics.FixedWindow.set_bounds">set_bounds</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
