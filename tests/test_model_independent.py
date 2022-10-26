@@ -50,3 +50,12 @@ class TestGainModelIndependent:
         assert type(y) == dict
         assert y['mean'] == 3.0
         assert y['variance'] == 2.0
+
+    def test_sav_gol_smoothing(self):
+        """Validate sav_gol_smoothing method with dummy data."""
+        x = np.array([3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3,
+                      2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7, 9])
+        x = round(GainModelIndependent.sav_gol_smoothing(x)[10], 2)
+        assert x == 6.23
+
+    # TODO: test for get_occupancy_model_independent
