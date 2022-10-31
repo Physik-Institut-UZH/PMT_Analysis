@@ -4,7 +4,7 @@ from scipy.signal import savgol_filter
 from tqdm import tqdm
 from itertools import count
 import warnings
-from typing import Union
+from typing import Tuple, Union, Optional
 
 
 class GainModelIndependent:
@@ -123,16 +123,33 @@ class GainModelIndependent:
         return outlier_bound_lower, outlier_bound_upper
 
     @staticmethod
-    def get_histogram_unity_bins(input_data: np.ndarray) -> tuple:
-        """Function to generate histogram with bin width 1.
+    def get_area_histogram(input_data: np.ndarray, bin_width: int = 1,
+                           limits: Optional[Tuple[int, int]] = None) -> tuple:
+        """Function to generate area histogram with given bin width.
 
         Args:
             input_data: Input pulse area data.
+            bin_width: Bin width.
+            limits: Range of histogram bins.
 
         Returns:
             tuple(bins_centers, cnts): Tuple with bins centers and corresponding counts values.
         """
-        bins_edges = np.arange(np.min(input_data) - 0.5, np.max(input_data) + 1.5, 1)
+        try:
+            bin_width = int(bin_width)
+        except Exception:
+            raise TypeError('bin_width must be of type int.')
+        if limits is not None:
+            if len(limits) != 2:
+                raise ValueError('Limits must be a tuple of length 2.')
+            try:
+                limits_lower = int(limits[0])
+                limits_upper = int(limits[1])
+            except Exception:
+                raise TypeError('Entries of limits must be of type int.')
+            bins_edges = np.arange(limits_lower - 0.5, limits_upper + 1.5, bin_width)
+        else:
+            bins_edges = np.arange(np.min(input_data) - 0.5, np.max(input_data) + 1.5, bin_width)
         bins_centers = (bins_edges[1:] + bins_edges[:-1]) / 2
         counts, _ = np.histogram(input_data, bins=bins_edges)
         return bins_centers, counts
@@ -173,17 +190,17 @@ class GainModelIndependent:
         output_data = savgol_filter(input_data, num, order)
         return output_data
 
-    def get_occupancy_model_independent(self, areas_led_on, areas_led_off):
+    def get_occupancy_model_independent(self, areas_led_on: np.ndarray, areas_led_off: np.ndarray) -> dict:
         """Calculate the occupancy for the model independent gain calculation.
 
         For a range of thresholds within the 0PE peak areas, calculate the number of entries
-        below threshold for 'LED off' (`integral_b`) and 'LED on' (`integral_a`) data areas.
+        below threshold for 'LED off' (`integral_b`) and 'LED on' (`integral_s`) data areas.
         The occupancy can be estimated from the number of 'LED on' sample triggers with
         zero LED-induced photoelectrons, as can be assumed for a sufficiently low threshold
-        for `integral_a`, and the total number of sample triggers, as can be by proportion estimated
+        for `integral_s`, and the total number of sample triggers, as can be by proportion estimated
         through `integral_b`. As the number of photoelectrons produced follows a Poisson distribution,
-        we can use the expression `-ln(integral_a/integral_b)` as an estimator for the occupancy for the
-        selected threshold. This threshold is supposed to be sufficiently low such that `integral_a` is
+        we can use the expression `-ln(integral_s/integral_b)` as an estimator for the occupancy for the
+        selected threshold. This threshold is supposed to be sufficiently low such that `integral_s` is
         not contaminated by a significant 1PE contribution. We therefore try to find the lowest
         threshold for which sufficient data points are available below threshold to achieve a
         relative occupancy error of below 1%. Ideally this is located in a local and global
@@ -199,7 +216,9 @@ class GainModelIndependent:
                 'occupancy_err': uncertainty final occupancy estimate;
                 'threshold_occupancy_determination': threshold in 0PE peak area calculations
                     for final occupancy estimate;
-                'iterations': pandas data frame with the tested thresholds and corresponding
+                'thr_occ_det_integral_fraction': fraction of entries in 'LED off' data below threshold;
+                'tot_entries_b': total number of waveforms in 'LED off' data,
+                'iterations': dictionary with the tested thresholds and corresponding
                     occupancy, occupancy uncertainty, and smoothed occupancy values}
         """
         # Total number of waveforms in 'LED off' data
@@ -219,28 +238,30 @@ class GainModelIndependent:
         occupancy_list = list()
         occupancy_err_list = list()
         thresholds_list = list()
+        f_list = list()
 
         # Loop over thresholds and calculate corresponding occupancy and error
         for threshold in list_thr_it_occ_det:
             # Calculate number of entries below peak area threshold for 'LED off' (integral_b) and
-            # 'LED on' (integral_a) data. Correction factor on integral_b should be close to one and
-            # only correct for differences due to outlier removal.
+            # 'LED on' (integral_s) data. Correction factor on integral_b (and later also f) should
+            # be close to one and only correct for differences due to outlier removal.
             # If significantly different cardinalities of LED on and off data sets are used,
             # the error calculation below may become incorrect.
             integral_b = np.sum(areas_led_off < threshold) * len(areas_led_on) / len(areas_led_off)
-            integral_a = np.sum(areas_led_on < threshold)
+            integral_s = np.sum(areas_led_on < threshold)
 
             # Perform occupancy calculations only for positive number of entries below threshold
-            if integral_b > 0 and integral_a > 0:
-                f = integral_b / tot_entries_b
+            if integral_b > 0 and integral_s > 0:
+                # Fraction of entries in 'LED off' data below threshold
+                f = integral_b / (tot_entries_b * len(areas_led_on) / len(areas_led_off))
                 # The occupancy can be estimated from the number of 'LED on' sample triggers with zero LED-induced
-                # photoelectrons, as can be assumed for a sufficiently low threshold for integral_a, and the
+                # photoelectrons, as can be assumed for a sufficiently low threshold for integral_s, and the
                 # total number of sample triggers, as can be by proportion estimated through integral_b.
                 # As the number of photoelectrons produced follows a Poisson distribution, we can use the following
                 # expression as an estimator for the occupancy for the selected threshold (which, if sufficiently low
                 # to not be contaminated by a significant 1PE contribution,
                 # should not change the obtained occupancy value).
-                l_val = -np.log(integral_a / integral_b)
+                l_val = -np.log(integral_s / integral_b)
                 l_err = np.sqrt((np.exp(l_val) + 1. - 2. * f) / integral_b)
 
                 # Only consider occupancy values with relative uncertainties below 5%.
@@ -248,11 +269,16 @@ class GainModelIndependent:
                     occupancy_list.append(l_val)
                     occupancy_err_list.append(l_err)
                     thresholds_list.append(threshold)
+                    f_list.append(f)
+
+        if len(occupancy_list) == 0:
+            raise ValueError('No occupancy values determined in threshold iterations.')
 
         # Convert to numpy arrays
         occupancy_list = np.asarray(occupancy_list)
         occupancy_err_list = np.asarray(occupancy_err_list)
         thresholds_list = np.asarray(thresholds_list)
+        f_list = np.asarray(f_list)
 
         # Smooth threshold-dependent occupancies with Savitzky–Golay filter
         occupancy_list_smooth = self.sav_gol_smoothing(occupancy_list)
@@ -269,11 +295,13 @@ class GainModelIndependent:
         occupancy_estimate = np.nan
         occupancy_estimate_err = np.nan
         threshold_occ_det = np.nan
+        thr_occ_det_integral_fraction = np.nan
         for idx in occupancy_list_smooth_argsort:
             if occupancy_err_list[idx] / occupancy_list[idx] < 0.01:
                 occupancy_estimate = occupancy_list[idx]
                 occupancy_estimate_err = occupancy_err_list[idx]
                 threshold_occ_det = thresholds_list[idx]
+                thr_occ_det_integral_fraction = f_list[idx]
                 break
 
         if np.isnan(occupancy_estimate):
@@ -282,15 +310,135 @@ class GainModelIndependent:
             warnings.warn('Warning: Estimated occupancy ({:.3f} ± {:.3f}) seems to be '
                           'less than zero.'.format(occupancy_estimate, occupancy_estimate_err))
         elif self.verbose:
+            print('Threshold for occupancy estimation: {}'.format(threshold_occ_det))
             print('Estimated occupancy: {:.3f} ± {:.3f}'.format(occupancy_estimate, occupancy_estimate_err))
 
         occupancy_estimator = {'occupancy': occupancy_estimate,
                                'occupancy_err': occupancy_estimate_err,
                                'threshold_occupancy_determination': threshold_occ_det,
-                               'iterations': pd.DataFrame({'threshold': thresholds_list,
-                                                           'occupancy': occupancy_list,
-                                                           'occupancy_err': occupancy_err_list,
-                                                           'occupancy_smoothed': occupancy_list_smooth}),
+                               'thr_occ_det_integral_fraction': thr_occ_det_integral_fraction,
+                               'tot_entries_b': tot_entries_b,
+                               'iterations': {'threshold': thresholds_list,
+                                              'occupancy': occupancy_list,
+                                              'occupancy_err': occupancy_err_list,
+                                              'occupancy_smoothed': occupancy_list_smooth},
                                }
 
         return occupancy_estimator
+
+    def get_gain_model_independent(self, areas_led_on: np.ndarray, areas_led_off: np.ndarray,
+                                   occupancy_estimator: dict) -> dict:
+        """Calculate model independent gain value.
+
+        Args:
+            areas_led_on: Array with 'LED on' data pulse areas.
+            areas_led_off: Array with 'LED off' data pulse areas.
+            occupancy_estimator: Output dictionary from `get_occupancy_model_independent` method.
+                Must contain at least the following keys: `occupancy`, `occupancy_err`,
+                `thr_occ_det_integral_fraction`, `tot_entries_b`.
+
+        Returns:
+            gain_estimator: Dictionary with the following keys:
+                {'moments_s': dict with first two moments of 'LED on' area distribution,
+                'moments_b': dict with first two moments of 'LED off' area distribution,
+                'mean_psi': mean of the single photoelectron response (unconverted gain),
+                'var_psi': variance of the single photoelectron response,
+                'mean_psi_stat_err': statistical error of mean_psi,
+                'mean_psi_sys_err': systematic error of mean_psi,
+                'mean_psi_err': total error of mean_psi}
+        """
+        # Get moments of area distributions
+        moments_s = self.get_moments(areas_led_on)
+        mean_s = moments_s['mean']
+        var_s = moments_s['variance']
+        moments_b = self.get_moments(areas_led_off)
+        mean_b = moments_b['mean']
+        var_b = moments_b['variance']
+
+        # Get occupancy related values
+        occupancy = occupancy_estimator['occupancy']
+        occupancy_err = occupancy_estimator['occupancy_err']
+        f_b = occupancy_estimator['thr_occ_det_integral_fraction']
+        tot_b = occupancy_estimator['tot_entries_b']
+
+        # Calculate first two central moments of the single photoelectron response
+        # and the uncertainties of the mean
+        mean_psi = (mean_s - mean_b) / occupancy
+        var_psi = (var_s - var_b) / occupancy - mean_psi**2
+        mean_psi_stat_err = (occupancy * (mean_psi**2 + var_psi) + 2 * var_b) / (tot_b * occupancy**2) + (
+                mean_psi * mean_psi * (np.exp(occupancy) + 1 - 2 * f_b)) / (f_b * tot_b * occupancy**2)
+        mean_psi_sys_err = (mean_s - mean_b) * occupancy_err / (occupancy**2)
+        mean_psi_err = np.sqrt(mean_psi_stat_err**2 + mean_psi_sys_err**2)
+
+        gain_estimator = {'moments_s': moments_s, 'moments_b': moments_b,
+                          'mean_psi': mean_psi, 'variance_psi': var_psi,
+                          'mean_psi_stat_err': mean_psi_stat_err, 'mean_psi_sys_err': mean_psi_sys_err,
+                          'mean_psi_err': mean_psi_err}
+
+        return gain_estimator
+
+    def compute(self, areas_led_on: np.ndarray, areas_led_off: np.ndarray, adc_to_e: float = np.nan) -> dict:
+        """Perform full model independent gain and occupancy calculation.
+
+        Args:
+            areas_led_on: Array with 'LED on' data pulse areas.
+            areas_led_off: Array with 'LED off' data pulse areas.
+            adc_to_e: Conversion factor pulse area in ADC units to charge in units of elementary charge.
+
+        Returns:
+            output_dict: Dictionary with the following keys:
+                {'occupancy': final occupancy estimate;
+                'occupancy_err': uncertainty final occupancy estimate;
+                'threshold_occupancy_determination': threshold in 0PE peak area calculations
+                    for final occupancy estimate;
+                'thr_occ_det_integral_fraction': fraction of entries in 'LED off' data below threshold;
+                'tot_entries_b': total number of waveforms in 'LED off' data,
+                'iterations': dictionary with the tested thresholds and corresponding
+                    occupancy, occupancy uncertainty, and smoothed occupancy values,
+                'moments_s': dict with first two moments of 'LED on' area distribution,
+                'moments_b': dict with first two moments of 'LED off' area distribution,
+                'mean_psi': mean of the single photoelectron response (unconverted gain),
+                'var_psi': variance of the single photoelectron response,
+                'mean_psi_stat_err': statistical error of mean_psi,
+                'mean_psi_sys_err': systematic error of mean_psi,
+                'mean_psi_err': total error of mean_psi,
+                'gain': gain values (in units of read out electrons per induced photoelectron),
+                'gain_stat_err': statistical error gain,
+                'gain_sys_err': systematic error gain,
+                'gain_err': total error gain,
+                'outlier_thresholds': range of area values to be used (excluding outliers),
+                'histograms:' dictionary with the bin centers and counts for 'LED on' and 'LED off'
+                    area histograms with default bin width of 10
+                }
+        """
+        # Calculate occupancy and gain
+        occupancy_estimator = self.get_occupancy_model_independent(areas_led_on, areas_led_off)
+        gain_estimator = self.get_gain_model_independent(areas_led_on, areas_led_off, occupancy_estimator)
+
+        # Convert to gain values (in units of read out electrons per induced photoelectron)
+        if np.isnan(adc_to_e):
+            warnings.warn('Unable to convert gain values as no valid input for adc_to_e provided.')
+        gain_converted = gain_estimator['mean_psi'] * adc_to_e
+        gain_stat_err_converted = gain_estimator['mean_psi_stat_err'] * adc_to_e
+        gain_sys_err_converted = gain_estimator['mean_psi_sys_err'] * adc_to_e
+        gain_err_converted = gain_estimator['mean_psi_err'] * adc_to_e
+        if self.verbose:
+            print('Estimated gain [10^6]: {:.3f} ± {:.3f} (stat) ± {:.3f} (syst)'.format(
+                gain_converted*1e-6, gain_stat_err_converted*1e-6, gain_sys_err_converted*1e-6))
+
+        gain_estimator_converted = {'gain': gain_converted, 'gain_stat_err': gain_stat_err_converted,
+                                    'gain_sys_err': gain_sys_err_converted, 'gain_err': gain_err_converted}
+
+        # Generate histograms for later reference
+        hist_bin_centers, hist_counts_led_on = self.get_area_histogram(areas_led_on, bin_width=10,
+                                                                       limits=self.outliers_thresholds)
+        hist_bin_centers, hist_counts_led_off = self.get_area_histogram(areas_led_off, bin_width=10,
+                                                                        limits=self.outliers_thresholds)
+        histograms = {'histograms': {'bin_centers': hist_bin_centers,
+                                     'counts_led_on': hist_counts_led_on,
+                                     'counts_led_off': hist_counts_led_off}}
+
+        # Save everything in a dictionary
+        output_dict = dict(**occupancy_estimator, **gain_estimator, **gain_estimator_converted,
+                           **{'outlier_thresholds': self.outliers_thresholds}, **histograms)
+        return output_dict

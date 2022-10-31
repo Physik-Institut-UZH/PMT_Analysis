@@ -47,7 +47,7 @@ class ADCRawData:
         adc_z: ADC input impedance.
         adc_a: Amplification factor of readout.
         elementary_charge: Electron charge in C.
-        adc_area_to_e: Conversion factor pulse area in ADC units to charge in units of elementary charge
+        adc_area_to_e: Conversion factor pulse area in ADC units to charge in units of elementary charge.
     &#34;&#34;&#34;
 
     def __init__(self, raw_input_path: str, raw_input_filepattern: str = &#39;*.root&#39;,
@@ -141,7 +141,8 @@ class ADCRawData:
         &#34;&#34;&#34;Find branch names in ROOT files to be loaded.
 
         Args:
-            tree: Name of the ROOT tree to be inspected. If `None` deduce with `get_trees` function.
+            tree: Name of the ROOT tree to be inspected. If `None` deduce with
+                `pmt_analysis.utils.input.ADCRawData.get_trees` method.
 
         Returns:
             branches: Array with branch names in selected ROOT files.
@@ -173,7 +174,7 @@ class ADCRawData:
 
         Args:
             branch: Branch of ROOT file to be loaded. Also allows for input of an ADC channel number (int).
-            tree: ROOT tree to load. If `None` deduce with `get_trees()` function.
+            tree: ROOT tree to load. If `None` deduce with `pmt_analysis.utils.input.ADCRawData.get_trees` method.
         Returns:
             chunk_collect: Array with data of selected branch. Typically, Unix timestamp for `branch = &#39;Time&#39;` or
                 ADC data of selected channel, e.g. waveforms of channel 0 for `branch = &#39;wf0&#39;` or `branch = 0`.
@@ -240,7 +241,7 @@ class ADCRawData:
 <dt><strong><code>elementary_charge</code></strong></dt>
 <dd>Electron charge in C.</dd>
 <dt><strong><code>adc_area_to_e</code></strong></dt>
-<dd>Conversion factor pulse area in ADC units to charge in units of elementary charge</dd>
+<dd>Conversion factor pulse area in ADC units to charge in units of elementary charge.</dd>
 </dl>
 <p>Init of the ADCRawData class.</p>
 <p>Defines the list of files to be loaded and global parameters from the data acquisition.</p>
@@ -272,7 +273,7 @@ all ROOT files in <code>raw_input_path</code>.</dd>
         adc_z: ADC input impedance.
         adc_a: Amplification factor of readout.
         elementary_charge: Electron charge in C.
-        adc_area_to_e: Conversion factor pulse area in ADC units to charge in units of elementary charge
+        adc_area_to_e: Conversion factor pulse area in ADC units to charge in units of elementary charge.
     &#34;&#34;&#34;
 
     def __init__(self, raw_input_path: str, raw_input_filepattern: str = &#39;*.root&#39;,
@@ -366,7 +367,8 @@ all ROOT files in <code>raw_input_path</code>.</dd>
         &#34;&#34;&#34;Find branch names in ROOT files to be loaded.
 
         Args:
-            tree: Name of the ROOT tree to be inspected. If `None` deduce with `get_trees` function.
+            tree: Name of the ROOT tree to be inspected. If `None` deduce with
+                `pmt_analysis.utils.input.ADCRawData.get_trees` method.
 
         Returns:
             branches: Array with branch names in selected ROOT files.
@@ -398,7 +400,7 @@ all ROOT files in <code>raw_input_path</code>.</dd>
 
         Args:
             branch: Branch of ROOT file to be loaded. Also allows for input of an ADC channel number (int).
-            tree: ROOT tree to load. If `None` deduce with `get_trees()` function.
+            tree: ROOT tree to load. If `None` deduce with `pmt_analysis.utils.input.ADCRawData.get_trees` method.
         Returns:
             chunk_collect: Array with data of selected branch. Typically, Unix timestamp for `branch = &#39;Time&#39;` or
                 ADC data of selected channel, e.g. waveforms of channel 0 for `branch = &#39;wf0&#39;` or `branch = 0`.
@@ -442,7 +444,7 @@ all ROOT files in <code>raw_input_path</code>.</dd>
 <dt><strong><code>branch</code></strong></dt>
 <dd>Branch of ROOT file to be loaded. Also allows for input of an ADC channel number (int).</dd>
 <dt><strong><code>tree</code></strong></dt>
-<dd>ROOT tree to load. If <code>None</code> deduce with <code>get_trees()</code> function.</dd>
+<dd>ROOT tree to load. If <code>None</code> deduce with <code><a title="pmt_analysis.utils.input.ADCRawData.get_trees" href="#pmt_analysis.utils.input.ADCRawData.get_trees">ADCRawData.get_trees()</a></code> method.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -459,7 +461,7 @@ ADC data of selected channel, e.g. waveforms of channel 0 for <code>branch = 'wf
 
     Args:
         branch: Branch of ROOT file to be loaded. Also allows for input of an ADC channel number (int).
-        tree: ROOT tree to load. If `None` deduce with `get_trees()` function.
+        tree: ROOT tree to load. If `None` deduce with `pmt_analysis.utils.input.ADCRawData.get_trees` method.
     Returns:
         chunk_collect: Array with data of selected branch. Typically, Unix timestamp for `branch = &#39;Time&#39;` or
             ADC data of selected channel, e.g. waveforms of channel 0 for `branch = &#39;wf0&#39;` or `branch = 0`.
@@ -500,7 +502,8 @@ ADC data of selected channel, e.g. waveforms of channel 0 for <code>branch = 'wf
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>tree</code></strong></dt>
-<dd>Name of the ROOT tree to be inspected. If <code>None</code> deduce with <code>get_trees</code> function.</dd>
+<dd>Name of the ROOT tree to be inspected. If <code>None</code> deduce with
+<code><a title="pmt_analysis.utils.input.ADCRawData.get_trees" href="#pmt_analysis.utils.input.ADCRawData.get_trees">ADCRawData.get_trees()</a></code> method.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -515,7 +518,8 @@ ADC data of selected channel, e.g. waveforms of channel 0 for <code>branch = 'wf
     &#34;&#34;&#34;Find branch names in ROOT files to be loaded.
 
     Args:
-        tree: Name of the ROOT tree to be inspected. If `None` deduce with `get_trees` function.
+        tree: Name of the ROOT tree to be inspected. If `None` deduce with
+            `pmt_analysis.utils.input.ADCRawData.get_trees` method.
 
     Returns:
         branches: Array with branch names in selected ROOT files.

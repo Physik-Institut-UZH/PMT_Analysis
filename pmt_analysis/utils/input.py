@@ -19,7 +19,7 @@ class ADCRawData:
         adc_z: ADC input impedance.
         adc_a: Amplification factor of readout.
         elementary_charge: Electron charge in C.
-        adc_area_to_e: Conversion factor pulse area in ADC units to charge in units of elementary charge
+        adc_area_to_e: Conversion factor pulse area in ADC units to charge in units of elementary charge.
     """
 
     def __init__(self, raw_input_path: str, raw_input_filepattern: str = '*.root',
@@ -113,7 +113,8 @@ class ADCRawData:
         """Find branch names in ROOT files to be loaded.
 
         Args:
-            tree: Name of the ROOT tree to be inspected. If `None` deduce with `get_trees` function.
+            tree: Name of the ROOT tree to be inspected. If `None` deduce with
+                `pmt_analysis.utils.input.ADCRawData.get_trees` method.
 
         Returns:
             branches: Array with branch names in selected ROOT files.
@@ -145,7 +146,7 @@ class ADCRawData:
 
         Args:
             branch: Branch of ROOT file to be loaded. Also allows for input of an ADC channel number (int).
-            tree: ROOT tree to load. If `None` deduce with `get_trees()` function.
+            tree: ROOT tree to load. If `None` deduce with `pmt_analysis.utils.input.ADCRawData.get_trees` method.
         Returns:
             chunk_collect: Array with data of selected branch. Typically, Unix timestamp for `branch = 'Time'` or
                 ADC data of selected channel, e.g. waveforms of channel 0 for `branch = 'wf0'` or `branch = 0`.

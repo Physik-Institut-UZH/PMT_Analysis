@@ -154,7 +154,7 @@ class FixedWindow:
             raise ValueError('input_data must have ndim = 2 dimension.')
         lower_bounds_list = [self.bounds_peak[0], self.bounds_baseline[0], input_data.shape[1]-1]
         lower_bounds_list = np.array([el for el in lower_bounds_list if el is not None])
-        lower_bounds_list = lower_bounds_list + input_data.shape[1] * (lower_bounds_list<0)
+        lower_bounds_list = lower_bounds_list + input_data.shape[1] * (lower_bounds_list < 0)
         if max(lower_bounds_list) >= input_data.shape[1]:
             raise ValueError('A lower window boundary was selected that extends beyond the data array length.')
 

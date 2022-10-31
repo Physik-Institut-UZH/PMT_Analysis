@@ -7,10 +7,10 @@ class TestGainModelIndependent:
     """Tests for `pmt_analysis.analysis.model_independent.GainModelIndependent` class."""
     base_path = os.path.abspath(os.path.dirname(__file__))
     input_path_adc_data1 = os.path.join(base_path, 'data',
-                                       'SPE_MA0055_MA0058_basev1.03_U0-1000V_U1-1000V_L1_Lamp1.78V_'
-                                       'Loff0.5V_Lwid30ns_Lfreq300Hz_20221018_00',
-                                       'wf0_areas.npy'
-                                       )
+                                        'SPE_MA0055_MA0058_basev1.03_U0-1000V_U1-1000V_L1_Lamp1.78V_'
+                                        'Loff0.5V_Lwid30ns_Lfreq300Hz_20221018_00',
+                                        'wf0_areas.npy'
+                                        )
     data1 = np.load(input_path_adc_data1)
 
     def test_inputs_to_numpy_types(self):
@@ -38,10 +38,12 @@ class TestGainModelIndependent:
         """Validate get_outlier_bounds method on test data."""
         assert GainModelIndependent.get_outlier_bounds(self.data1) == (-1043.0, 5857.0)
 
-    def test_get_histogram_unity_bins(self):
-        """Validate get_histogram_unity_bins method on test data."""
-        assert GainModelIndependent.get_histogram_unity_bins(self.data1)[0][432] == 0.0
-        assert GainModelIndependent.get_histogram_unity_bins(self.data1)[1][432] == 5
+    def test_get_area_histogram(self):
+        """Validate get_area_histogram method on test data."""
+        assert GainModelIndependent.get_area_histogram(self.data1, 1)[0][432] == 0.0
+        assert GainModelIndependent.get_area_histogram(self.data1, 1)[1][432] == 5
+        with pytest.raises(TypeError):
+            print(GainModelIndependent.get_area_histogram(self.data1, None)[0][432])  # type: ignore
 
     def test_get_moments(self):
         """Validate get_moments method with dummy data."""
@@ -58,4 +60,8 @@ class TestGainModelIndependent:
         x = round(GainModelIndependent.sav_gol_smoothing(x)[10], 2)
         assert x == 6.23
 
-    # TODO: test for get_occupancy_model_independent
+    # TODO: tests for get_occupancy_model_independent
+    # TODO: tests for get_gain_model_independent
+    # TODO: tests for compute
+    # TODO: updated tests for get_area_histogram
+    # TODO: tests for plotting
