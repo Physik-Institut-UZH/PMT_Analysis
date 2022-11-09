@@ -81,7 +81,7 @@ class TestFixedWindow:
     def test_basic_properties(self):
         """Check get_basic_properties function."""
         x = FixedWindow((0, 100), (100, None))
-        x = x.get_basic_properties(self.data, parameters = ['baseline', 'amplitude'])
+        x = x.get_basic_properties(self.data, parameters=['baseline', 'amplitude'])
         assert x.shape == (2000, 2)
         assert type(x) == pd.DataFrame
 
@@ -89,7 +89,7 @@ class TestFixedWindow:
         """Check get_basic_properties function input sanity."""
         with pytest.raises(TypeError):
             x = FixedWindow((0, 100), (100, None))
-            x.get_basic_properties(1, parameters=['baseline'])
+            x.get_basic_properties(1, parameters=['baseline'])  # type: ignore
         with pytest.raises(ValueError):
             x = FixedWindow((0, 100), (100, None))
             x.get_basic_properties(np.arange(300), parameters=['baseline'])
@@ -102,3 +102,39 @@ class TestFixedWindow:
         with pytest.raises(ValueError):
             x = FixedWindow((300, 400), (100, None))
             x.get_basic_properties(self.data, parameters=['baseline'])
+
+
+class TestFullWindow:
+    """Tests for `pmt_analysis.processing.basics.FullWindow` class."""
+    base_path = os.path.abspath(os.path.dirname(__file__))
+    input_path_adc_data = os.path.join(base_path, 'data',
+                                       'SPE_MA0055_MA0058_basev1.03_U0-1000V_U1-1000V_L1_Lamp1.78V_'
+                                       'Loff0.5V_Lwid30ns_Lfreq300Hz_20221018_00',
+                                       'wf0.npy'
+                                       )
+    # Load test data. Use extracted data in .npy file instead of loading the ROOT file data for more robustness.
+    data = np.load(input_path_adc_data)
+
+    def test_init(self):
+        """Init of FixedWindow class with valid inputs."""
+        x = FullWindow()
+        assert x.bounds_baseline == (None, None)
+        assert x.bounds_peak == (None, None)
+
+    def test_baseline(self):
+        """Check baseline calculation full window."""
+        x_bsl = FullWindow(n_slices=7).get_baseline(self.data)
+        assert x_bsl.shape == (2000,)
+        assert x_bsl[2] == 15498.0
+
+    def test_baseline_std(self):
+        """Check baseline standard deviation calculation full window."""
+        x_bsl_std = FullWindow(n_slices=7).get_baseline_std(self.data)
+        assert x_bsl_std.shape == (2000,)
+        assert round(x_bsl_std[1], 1) == 4.5
+
+    def test_amplitude(self):
+        """Check amplitude calculation full window."""
+        x_amp = FullWindow(n_slices=7).get_amplitude(self.data)
+        assert x_amp.shape == (2000,)
+        assert x_amp[1] == 216.0

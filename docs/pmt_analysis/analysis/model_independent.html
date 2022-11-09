@@ -76,7 +76,7 @@ class GainModelIndependent:
         self.outliers_thresholds = (None, None)
         if trim_outliers_bool:
             if verbose:
-                print(&#39;Calculating range of area values to be used for the time dependent gain calculation.&#39;)
+                print(&#39;Calculating range of area values to be used for the model independent gain calculation.&#39;)
             outlier_bound_lower, outlier_bound_upper = self.get_outlier_bounds(self.areas_led_on, self.verbose)
             self.outliers_thresholds = (outlier_bound_lower, outlier_bound_upper)
             if verbose:
@@ -565,7 +565,7 @@ per LED trigger) of ca. 2 for uncertainty minimization.</p>
         self.outliers_thresholds = (None, None)
         if trim_outliers_bool:
             if verbose:
-                print(&#39;Calculating range of area values to be used for the time dependent gain calculation.&#39;)
+                print(&#39;Calculating range of area values to be used for the model independent gain calculation.&#39;)
             outlier_bound_lower, outlier_bound_upper = self.get_outlier_bounds(self.areas_led_on, self.verbose)
             self.outliers_thresholds = (outlier_bound_lower, outlier_bound_upper)
             if verbose:

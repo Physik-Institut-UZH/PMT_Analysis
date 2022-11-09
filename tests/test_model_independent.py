@@ -12,6 +12,16 @@ class TestGainModelIndependent:
                                         'wf0_areas.npy'
                                         )
     data1 = np.load(input_path_adc_data1)
+    input_path_adc_data2 = os.path.join(base_path, 'data',
+                                        'model_independent',
+                                        'areas_on.npy'
+                                        )
+    data2 = np.load(input_path_adc_data2)
+    input_path_adc_data3 = os.path.join(base_path, 'data',
+                                        'model_independent',
+                                        'areas_off.npy'
+                                        )
+    data3 = np.load(input_path_adc_data3)
 
     def test_inputs_to_numpy_types(self):
         """Tests inputs_to_numpy method for allowed input types."""
@@ -60,8 +70,12 @@ class TestGainModelIndependent:
         x = round(GainModelIndependent.sav_gol_smoothing(x)[10], 2)
         assert x == 6.23
 
-    # TODO: tests for get_occupancy_model_independent
-    # TODO: tests for get_gain_model_independent
-    # TODO: tests for compute
-    # TODO: updated tests for get_area_histogram
-    # TODO: tests for plotting
+    def test_compute(self):
+        """Validate compute method with dummy data."""
+        x = GainModelIndependent(self.data2, self.data3)
+        y = x.compute(self.data2, self.data3)
+        for el in ['occupancy', 'occupancy_err', 'thr_occ_det_integral_fraction',
+                   'tot_entries_b', 'gain', 'gain_err', 'mean_psi', 'iterations']:
+            assert el in y
+        assert round(y['occupancy'], 1) == 1.7
+        assert round(y['mean_psi'], -1) == 970

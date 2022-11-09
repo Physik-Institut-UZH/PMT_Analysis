@@ -48,7 +48,7 @@ class GainModelIndependent:
         self.outliers_thresholds = (None, None)
         if trim_outliers_bool:
             if verbose:
-                print('Calculating range of area values to be used for the time dependent gain calculation.')
+                print('Calculating range of area values to be used for the model independent gain calculation.')
             outlier_bound_lower, outlier_bound_upper = self.get_outlier_bounds(self.areas_led_on, self.verbose)
             self.outliers_thresholds = (outlier_bound_lower, outlier_bound_upper)
             if verbose:

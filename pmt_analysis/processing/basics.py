@@ -56,7 +56,7 @@ class FixedWindow:
                     output_list[i] = int(el)
                     warnings.warn('Converted element {} in {} to int. This may lead to unwanted behavior. '
                                   'Recommended to directly pass tuples of integers.'.format(i, input_tuple_name))
-                except:
+                except Exception:
                     raise TypeError('Expected tuple of integers / Nones for {}.'.format(input_tuple_name))
         # Convert to tuple to make immutable.
         output_tuple = tuple(output_list)
@@ -172,3 +172,57 @@ class FixedWindow:
         if df_out.shape == (0, 0):
             warnings.warn("Output from get_basic_properties seems to be empty.")
         return df_out
+
+
+class FullWindow(FixedWindow):
+    """Basic processing functions using the full waveform window for baseline / peak calculations
+    without dedicated peak finding. Applicable especially for naive random dark count finding.
+
+    Attributes:
+        n_slices: Number of slices for robust baseline and baseline standard deviation calculation.
+    """
+
+    def __init__(self, n_slices: int = 7):
+        """Init of the FullWindow class.
+
+        Defines baseline and peak window boundaries as None to use full waveform window.
+
+        Args:
+            n_slices: Number of slices for robust baseline and baseline standard deviation calculation.
+        """
+        FixedWindow.__init__(self, bounds_baseline=(None, None), bounds_peak=(None, None))
+        self.n_slices = n_slices
+
+    def get_baseline(self, input_data: np.ndarray) -> np.ndarray:
+        """Calculate baselines of individual waveforms with reduced peaks impact.
+
+        Apply more robust approach reducing the pull by localized peaks by calculating the median
+        in `n_slices` slices of approximately (but not necessarily exactly)
+        equal size and taking the median of those values as baseline value.
+
+        Args:
+            input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+        Returns:
+            bsl: Array with baseline values of shape (number of waveforms, ).
+        """
+        bsl = np.median(np.asarray([np.median(el, axis=1) for el in
+                                    np.array_split(input_data, self.n_slices, axis=1)]).T, axis=1)
+        return bsl
+
+    def get_baseline_std(self, input_data: np.ndarray) -> np.ndarray:
+        """Calculate baseline standard deviations of individual waveforms with reduced peaks impact.
+
+        Apply more robust approach reducing the pull by localized peaks by calculating the
+        standard deviation in `n_slices` slices of approximately (but not necessarily exactly)
+        equal size and taking the median of those values as baseline standard deviation value.
+
+        Args:
+            input_data: Array with ADC data of shape (number of waveforms, time bins per waveform).
+
+        Returns:
+            bsl: Array with baseline standard deviation values of shape (number of waveforms, ).
+        """
+        bsl_std = np.median(np.asarray([np.std(el, axis=1) for el in
+                                        np.array_split(input_data, self.n_slices, axis=1)]).T, axis=1)
+        return bsl_std
