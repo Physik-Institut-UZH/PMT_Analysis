@@ -14,6 +14,8 @@ setup(
     name='pmt_analysis',
     version='0.0.1',
     packages=find_packages(exclude=['tests*']),
+    package_data={'pmt_analysis': ['plotting/custom_style.mplstyle']},
+    include_package_data=True,
     license='none',
     description='Comprehensive analysis for PMT characterization data.',
     long_description=open('README.md').read(),

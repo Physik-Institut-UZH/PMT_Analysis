@@ -1,7 +1,6 @@
 import numpy as np
 import uproot
 import concurrent.futures
-from tqdm import tqdm
 import os
 import glob
 from typing import Optional, Union
@@ -91,7 +90,7 @@ class ADCRawData:
                 if len(trees_file) == 0:
                     raise ValueError('No trees found in selected ROOT file {}.'.format(input_file))
                 # Convert tree names to string.
-                trees_file = [el.decode("utf-8") for el in trees_file]
+                trees_file = [el for el in trees_file]
                 # For large data sets, ROOT may generate additional copies of a
                 # particular tree, consequently named e.g. `t1;1`, `t1;2`,...
                 # We only want the name before the semicolon.
@@ -133,7 +132,7 @@ class ADCRawData:
                 if len(branches_file) == 0:
                     raise ValueError('No branches found for tree {} in selected ROOT file {}.'.format(tree, input_file))
                 # Convert branch names to string.
-                branches_file = np.array([el.decode("utf-8") for el in branches_file])
+                branches_file = np.array([el for el in branches_file])
             # Concatenate with previous iterations.
             if i != 0:
                 branches = np.unique(np.concatenate([branches, branches_file], axis=0))
@@ -148,7 +147,7 @@ class ADCRawData:
             branch: Branch of ROOT file to be loaded. Also allows for input of an ADC channel number (int).
             tree: ROOT tree to load. If `None` deduce with `pmt_analysis.utils.input.ADCRawData.get_trees` method.
         Returns:
-            chunk_collect: Array with data of selected branch. Typically, Unix timestamp for `branch = 'Time'` or
+            out: Array with data of selected branch. Typically, Unix timestamp for `branch = 'Time'` or
                 ADC data of selected channel, e.g. waveforms of channel 0 for `branch = 'wf0'` or `branch = 0`.
         """
         # Define tree to be inspected.
@@ -167,13 +166,12 @@ class ADCRawData:
             raise ValueError('Branch {} not found in tree {} of selected ROOT files.'.format(branch, tree))
         # Iteratively load data from ROOT files.
         executor = concurrent.futures.ThreadPoolExecutor(8)
-        for i, chunk in tqdm(enumerate(uproot.iterate(self.raw_input_fileslist, treepath=tree,
-                                                      branches=branch, entrysteps=100000,
-                                                      flatten=False, executor=executor)),
-                             disable=not bool(self.verbose)):
-            chunk = chunk[branch.encode("utf-8")]
-            if i != 0:
-                chunk_collect = np.concatenate([chunk_collect, chunk], axis=0)
-            else:
-                chunk_collect = chunk
-        return chunk_collect
+        out = uproot.concatenate(files={el: tree for el in self.raw_input_fileslist},
+                                 expressions=branch,
+                                 library ='np',
+                                 step_size=100000,
+                                 allow_missing=True,
+                                 decompression_executor=executor,
+                                 interpretation_executor=executor
+                                )[branch]
+        return out
