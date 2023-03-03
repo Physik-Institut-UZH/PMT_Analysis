@@ -38,7 +38,8 @@ parser.add_argument('-bpu', '--pks_bound_upper',
                     default=None)
 parser.add_argument('-c', '--channel',
                     help='ADC channel number.',
-                    type=int)
+                    type=int,
+                    required=True)
 parser.add_argument('-v', '--verbose',
                     help='Set verbose output.',
                     default=True,
@@ -49,8 +50,14 @@ parser.add_argument('-tr', '--trim_outliers_bool',
                     type=bool)
 args = parser.parse_args()
 
-# MAIN
-if __name__ == '__main__':
+
+def compute() -> dict:
+    """Perform all steps for model independent gain and occupancy calculation and plotting.
+
+    Returns:
+        estimates_dict: Dictionary with results from model independent gain and occupancy computation
+            as obtained from `pmt_analysis.analysis.model_independent.GainModelIndependent.compute`.
+    """
     # Load data
     data_on = ADCRawData(args.input_path_on, verbose=args.verbose).get_branch_data(args.channel)
     data_off = ADCRawData(args.input_path_off, verbose=args.verbose).get_branch_data(args.channel)
@@ -64,7 +71,14 @@ if __name__ == '__main__':
     gain_model_independent = GainModelIndependent(areas_on, areas_off, verbose=args.verbose,
                                                   trim_outliers_bool=args.trim_outliers_bool)
     adc_to_e = ADCRawData(args.input_path_on).adc_area_to_e
-    estimates = gain_model_independent.compute(areas_on, areas_off, adc_to_e)
+    estimates_dict = gain_model_independent.compute(areas_on, areas_off, adc_to_e)
     # Generate plots
-    plotting_gain_model_independent = PlottingGainModelIndependent(estimates)
+    plotting_gain_model_independent = PlottingGainModelIndependent(estimates_dict)
     plotting_gain_model_independent.plot_essentials()
+    # Return estimates dictionary
+    return estimates_dict
+
+
+# MAIN
+if __name__ == '__main__':
+    estimates = compute()

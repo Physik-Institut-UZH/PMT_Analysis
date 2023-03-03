@@ -192,7 +192,6 @@ class PlottingGainModelIndependent:
             plt.show()
         else:
             plt.close()
-        plt.show()
 
     def plot_area_hist_model_independent_gain(self):
         """Area histogram of the 'LED on' and 'LED off' data illustrating the
@@ -236,7 +235,6 @@ class PlottingGainModelIndependent:
             plt.show()
         else:
             plt.close()
-        plt.show()
 
     def plot_essentials(self):
         """Plot essential plots for model independent gain and occupancy estimation."""
