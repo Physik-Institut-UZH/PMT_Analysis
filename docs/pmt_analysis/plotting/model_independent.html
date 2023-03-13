@@ -42,7 +42,9 @@ class PlottingGainModelIndependent:
         input_dict: Dictionary with output results from the
             `pmt_analysis.analysis.model_independent.GainModelIndependent.compute` method.
         save_plots: Bool defining if plots are saved (as png and pdf).
+        show_plots: Bool defining if plots are displayed.
         save_dir: Target directory for saving the plots.
+        save_name_suffix: Measurement specific figure name suffix.
     &#34;&#34;&#34;
 
     def __init__(self, input_dict: dict, save_plots: bool = False, show_plots: bool = True,
@@ -293,8 +295,12 @@ class PlottingGainModelIndependent:
 <code><a title="pmt_analysis.analysis.model_independent.GainModelIndependent.compute" href="../analysis/model_independent.html#pmt_analysis.analysis.model_independent.GainModelIndependent.compute">GainModelIndependent.compute()</a></code> method.</dd>
 <dt><strong><code>save_plots</code></strong></dt>
 <dd>Bool defining if plots are saved (as png and pdf).</dd>
+<dt><strong><code>show_plots</code></strong></dt>
+<dd>Bool defining if plots are displayed.</dd>
 <dt><strong><code>save_dir</code></strong></dt>
 <dd>Target directory for saving the plots.</dd>
+<dt><strong><code>save_name_suffix</code></strong></dt>
+<dd>Measurement specific figure name suffix.</dd>
 </dl>
 <p>Init of the GainModelIndependent class.</p>
 <p>Generation of standard plots with respect to the model independent occupancy
@@ -325,7 +331,9 @@ and gain calculation.</p>
         input_dict: Dictionary with output results from the
             `pmt_analysis.analysis.model_independent.GainModelIndependent.compute` method.
         save_plots: Bool defining if plots are saved (as png and pdf).
+        show_plots: Bool defining if plots are displayed.
         save_dir: Target directory for saving the plots.
+        save_name_suffix: Measurement specific figure name suffix.
     &#34;&#34;&#34;
 
     def __init__(self, input_dict: dict, save_plots: bool = False, show_plots: bool = True,

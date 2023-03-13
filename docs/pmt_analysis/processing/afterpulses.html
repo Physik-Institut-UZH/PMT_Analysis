@@ -48,6 +48,7 @@ class AfterPulses:
             `pmt_analysis.utils.input.ADCRawData`.
         occupancy: Occupancy of the main pulse in PE per (LED) trigger.
         occupancy_unc: Occupancy uncertainty of the main pulse in PE per (LED) trigger.
+        amp_thr_ap: Lower amplitude threshold for afterpulse candidates.
         n_samples: Total number of waveforms analyzed.
         df: Pandas dataframe with after pulse candidates and their properties.
         ap_rate_dict: Dictionary with resulting afterpulse rate value and uncertainty.
@@ -55,7 +56,8 @@ class AfterPulses:
 
     def __init__(self, input_data: np.ndarray, adc_f: float, verbose: bool = True,
                  pre_filter_threshold: float = 3, pre_filter_threshold_type: str = &#39;std&#39;,
-                 occupancy: Optional[float] = None, occupancy_unc: Optional[float] = None):
+                 occupancy: Optional[float] = None, occupancy_unc: Optional[float] = None,
+                 amp_thr_ap: Optional[float] = None):
         &#34;&#34;&#34;Init of the AfterPulses class.
 
         Args:
@@ -71,10 +73,12 @@ class AfterPulses:
                 `pmt_analysis.utils.input.ADCRawData`.
             occupancy: Occupancy of the main pulse in PE per (LED) trigger.
             occupancy_unc: Occupancy uncertainty of the main pulse in PE per (LED) trigger.
+            amp_thr_ap: Lower amplitude threshold for afterpulse candidates.
         &#34;&#34;&#34;
         self.adc_f = adc_f
         self.occupancy = occupancy
         self.occupancy_unc = occupancy_unc
+        self.amp_thr_ap = amp_thr_ap
         self.input_data = input_data
         self.input_data_std = FullWindow().get_baseline_std(self.input_data)
         self.verbose = verbose
@@ -386,6 +390,11 @@ class AfterPulses:
         - `ap_rate_separable`: Afterpulse probability in units of afterpulses (separable from the main pulse) per PE.
         - `ap_rate_separable_unc`: Uncertainty of the afterpulse probability in units of afterpulses \
           (separable from the main pulse) per PE.
+        - `amp_thr_ap`: Lower amplitude threshold for afterpulse candidates.
+        - `ap_rate_separable_above_thr`: Afterpulse probability in units of afterpulses (separable from the main pulse)
+          per PE for afterpulse candidates with amplitudes above `amp_thr_ap`.
+        - `ap_rate_separable_unc_above_thr`: Uncertainty of the afterpulse probability in units of afterpulses
+          (separable from the main pulse) per PE for afterpulse candidates with amplitudes above `amp_thr_ap`.
         &#34;&#34;&#34;
         n_ap = self.df.shape[0]
         n_ap_separable = np.sum(self.df.separable)
@@ -399,6 +408,8 @@ class AfterPulses:
             ap_rate_unc = None
             ap_rate_separable = None
             ap_rate_separable_unc = None
+            ap_rate_separable_above_thr = None
+            ap_rate_separable_unc_above_thr = None
         else:
             ap_rate = ap_fraction / self.occupancy
             ap_rate_separable = ap_fraction_separable / self.occupancy
@@ -410,16 +421,34 @@ class AfterPulses:
             else:
                 ap_rate_unc = ap_rate * np.sqrt((ap_fraction_unc/ap_fraction)**2
                                                 + (self.occupancy_unc/self.occupancy)**2)
-                ap_rate_separable_unc = ap_rate_separable * np.sqrt((ap_fraction_separable_unc/
+                ap_rate_separable_unc = ap_rate_separable * np.sqrt((ap_fraction_separable_unc /
                                                                      ap_fraction_separable) ** 2
                                                                     + (self.occupancy_unc/self.occupancy) ** 2)
+            if self.amp_thr_ap is None:
+                warnings.warn(&#39;No lower amplitude threshold for afterpulse candidates provided.&#39;)
+                ap_rate_separable_above_thr = None
+                ap_rate_separable_unc_above_thr = None
+            else:
+                n_ap_separable_above_thr = np.sum(self.df.separable &amp; (self.df.p1_amplitude &gt;= self.amp_thr_ap))
+                ap_fraction_separable_above_thr = n_ap_separable_above_thr / self.n_samples
+                ap_fraction_separable_unc_above_thr = np.sqrt(n_ap_separable_above_thr) / self.n_samples
+                ap_rate_separable_above_thr = ap_fraction_separable_above_thr / self.occupancy
+                if self.occupancy_unc is None:
+                    ap_rate_separable_unc_above_thr = None
+                else:
+                    ap_rate_separable_unc_above_thr = (ap_rate_separable_above_thr
+                                                       * np.sqrt((ap_fraction_separable_unc_above_thr /
+                                                                  ap_fraction_separable_above_thr) ** 2
+                                                                 + (self.occupancy_unc / self.occupancy) ** 2))
 
         self.ap_rate_dict = {&#39;n_ap&#39;: n_ap, &#39;n_ap_separable&#39;: n_ap_separable,
                              &#39;ap_fraction&#39;: ap_fraction, &#39;ap_fraction_unc&#39;: ap_fraction_unc,
                              &#39;ap_fraction_separable&#39;: ap_fraction_separable,
                              &#39;ap_fraction_separable_unc&#39;: ap_fraction_separable_unc,
                              &#39;ap_rate&#39;: ap_rate, &#39;ap_rate_unc&#39;: ap_rate_unc,
-                             &#39;ap_rate_separable&#39;: ap_rate_separable, &#39;ap_rate_separable_unc&#39;: ap_rate_separable_unc
+                             &#39;ap_rate_separable&#39;: ap_rate_separable, &#39;ap_rate_separable_unc&#39;: ap_rate_separable_unc,
+                             &#39;amp_thr_ap&#39;: self.amp_thr_ap, &#39;ap_rate_separable_above_thr&#39;: ap_rate_separable_above_thr,
+                             &#39;ap_rate_separable_unc_above_thr&#39;: ap_rate_separable_unc_above_thr
                              }
 
     def compute(self, height: float, distance: float = 6, prominence_std: float = 8,
@@ -438,8 +467,7 @@ class AfterPulses:
         self.constrain_main_peak(trim=constrain_main_peak)
         self.get_ap_properties()
         self.multi_ap()
-        self.ap_rate()
-        # TODO: plotting, script</code></pre>
+        self.ap_rate()</code></pre>
 </details>
 </section>
 <section>
@@ -453,7 +481,7 @@ class AfterPulses:
 <dl>
 <dt id="pmt_analysis.processing.afterpulses.AfterPulses"><code class="flex name class">
 <span>class <span class="ident">AfterPulses</span></span>
-<span>(</span><span>input_data: numpy.ndarray, adc_f: float, verbose: bool = True, pre_filter_threshold: float = 3, pre_filter_threshold_type: str = 'std', occupancy: Optional[float] = None, occupancy_unc: Optional[float] = None)</span>
+<span>(</span><span>input_data: numpy.ndarray, adc_f: float, verbose: bool = True, pre_filter_threshold: float = 3, pre_filter_threshold_type: str = 'std', occupancy: Optional[float] = None, occupancy_unc: Optional[float] = None, amp_thr_ap: Optional[float] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Afterpulse finding and processing.</p>
@@ -472,6 +500,8 @@ class AfterPulses:
 <dd>Occupancy of the main pulse in PE per (LED) trigger.</dd>
 <dt><strong><code>occupancy_unc</code></strong></dt>
 <dd>Occupancy uncertainty of the main pulse in PE per (LED) trigger.</dd>
+<dt><strong><code>amp_thr_ap</code></strong></dt>
+<dd>Lower amplitude threshold for afterpulse candidates.</dd>
 <dt><strong><code>n_samples</code></strong></dt>
 <dd>Total number of waveforms analyzed.</dd>
 <dt><strong><code>df</code></strong></dt>
@@ -501,6 +531,8 @@ baseline standard deviation.</dd>
 <dd>Occupancy of the main pulse in PE per (LED) trigger.</dd>
 <dt><strong><code>occupancy_unc</code></strong></dt>
 <dd>Occupancy uncertainty of the main pulse in PE per (LED) trigger.</dd>
+<dt><strong><code>amp_thr_ap</code></strong></dt>
+<dd>Lower amplitude threshold for afterpulse candidates.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -517,6 +549,7 @@ baseline standard deviation.</dd>
             `pmt_analysis.utils.input.ADCRawData`.
         occupancy: Occupancy of the main pulse in PE per (LED) trigger.
         occupancy_unc: Occupancy uncertainty of the main pulse in PE per (LED) trigger.
+        amp_thr_ap: Lower amplitude threshold for afterpulse candidates.
         n_samples: Total number of waveforms analyzed.
         df: Pandas dataframe with after pulse candidates and their properties.
         ap_rate_dict: Dictionary with resulting afterpulse rate value and uncertainty.
@@ -524,7 +557,8 @@ baseline standard deviation.</dd>
 
     def __init__(self, input_data: np.ndarray, adc_f: float, verbose: bool = True,
                  pre_filter_threshold: float = 3, pre_filter_threshold_type: str = &#39;std&#39;,
-                 occupancy: Optional[float] = None, occupancy_unc: Optional[float] = None):
+                 occupancy: Optional[float] = None, occupancy_unc: Optional[float] = None,
+                 amp_thr_ap: Optional[float] = None):
         &#34;&#34;&#34;Init of the AfterPulses class.
 
         Args:
@@ -540,10 +574,12 @@ baseline standard deviation.</dd>
                 `pmt_analysis.utils.input.ADCRawData`.
             occupancy: Occupancy of the main pulse in PE per (LED) trigger.
             occupancy_unc: Occupancy uncertainty of the main pulse in PE per (LED) trigger.
+            amp_thr_ap: Lower amplitude threshold for afterpulse candidates.
         &#34;&#34;&#34;
         self.adc_f = adc_f
         self.occupancy = occupancy
         self.occupancy_unc = occupancy_unc
+        self.amp_thr_ap = amp_thr_ap
         self.input_data = input_data
         self.input_data_std = FullWindow().get_baseline_std(self.input_data)
         self.verbose = verbose
@@ -855,6 +891,11 @@ baseline standard deviation.</dd>
         - `ap_rate_separable`: Afterpulse probability in units of afterpulses (separable from the main pulse) per PE.
         - `ap_rate_separable_unc`: Uncertainty of the afterpulse probability in units of afterpulses \
           (separable from the main pulse) per PE.
+        - `amp_thr_ap`: Lower amplitude threshold for afterpulse candidates.
+        - `ap_rate_separable_above_thr`: Afterpulse probability in units of afterpulses (separable from the main pulse)
+          per PE for afterpulse candidates with amplitudes above `amp_thr_ap`.
+        - `ap_rate_separable_unc_above_thr`: Uncertainty of the afterpulse probability in units of afterpulses
+          (separable from the main pulse) per PE for afterpulse candidates with amplitudes above `amp_thr_ap`.
         &#34;&#34;&#34;
         n_ap = self.df.shape[0]
         n_ap_separable = np.sum(self.df.separable)
@@ -868,6 +909,8 @@ baseline standard deviation.</dd>
             ap_rate_unc = None
             ap_rate_separable = None
             ap_rate_separable_unc = None
+            ap_rate_separable_above_thr = None
+            ap_rate_separable_unc_above_thr = None
         else:
             ap_rate = ap_fraction / self.occupancy
             ap_rate_separable = ap_fraction_separable / self.occupancy
@@ -879,16 +922,34 @@ baseline standard deviation.</dd>
             else:
                 ap_rate_unc = ap_rate * np.sqrt((ap_fraction_unc/ap_fraction)**2
                                                 + (self.occupancy_unc/self.occupancy)**2)
-                ap_rate_separable_unc = ap_rate_separable * np.sqrt((ap_fraction_separable_unc/
+                ap_rate_separable_unc = ap_rate_separable * np.sqrt((ap_fraction_separable_unc /
                                                                      ap_fraction_separable) ** 2
                                                                     + (self.occupancy_unc/self.occupancy) ** 2)
+            if self.amp_thr_ap is None:
+                warnings.warn(&#39;No lower amplitude threshold for afterpulse candidates provided.&#39;)
+                ap_rate_separable_above_thr = None
+                ap_rate_separable_unc_above_thr = None
+            else:
+                n_ap_separable_above_thr = np.sum(self.df.separable &amp; (self.df.p1_amplitude &gt;= self.amp_thr_ap))
+                ap_fraction_separable_above_thr = n_ap_separable_above_thr / self.n_samples
+                ap_fraction_separable_unc_above_thr = np.sqrt(n_ap_separable_above_thr) / self.n_samples
+                ap_rate_separable_above_thr = ap_fraction_separable_above_thr / self.occupancy
+                if self.occupancy_unc is None:
+                    ap_rate_separable_unc_above_thr = None
+                else:
+                    ap_rate_separable_unc_above_thr = (ap_rate_separable_above_thr
+                                                       * np.sqrt((ap_fraction_separable_unc_above_thr /
+                                                                  ap_fraction_separable_above_thr) ** 2
+                                                                 + (self.occupancy_unc / self.occupancy) ** 2))
 
         self.ap_rate_dict = {&#39;n_ap&#39;: n_ap, &#39;n_ap_separable&#39;: n_ap_separable,
                              &#39;ap_fraction&#39;: ap_fraction, &#39;ap_fraction_unc&#39;: ap_fraction_unc,
                              &#39;ap_fraction_separable&#39;: ap_fraction_separable,
                              &#39;ap_fraction_separable_unc&#39;: ap_fraction_separable_unc,
                              &#39;ap_rate&#39;: ap_rate, &#39;ap_rate_unc&#39;: ap_rate_unc,
-                             &#39;ap_rate_separable&#39;: ap_rate_separable, &#39;ap_rate_separable_unc&#39;: ap_rate_separable_unc
+                             &#39;ap_rate_separable&#39;: ap_rate_separable, &#39;ap_rate_separable_unc&#39;: ap_rate_separable_unc,
+                             &#39;amp_thr_ap&#39;: self.amp_thr_ap, &#39;ap_rate_separable_above_thr&#39;: ap_rate_separable_above_thr,
+                             &#39;ap_rate_separable_unc_above_thr&#39;: ap_rate_separable_unc_above_thr
                              }
 
     def compute(self, height: float, distance: float = 6, prominence_std: float = 8,
@@ -907,8 +968,7 @@ baseline standard deviation.</dd>
         self.constrain_main_peak(trim=constrain_main_peak)
         self.get_ap_properties()
         self.multi_ap()
-        self.ap_rate()
-        # TODO: plotting, script</code></pre>
+        self.ap_rate()</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
@@ -970,6 +1030,11 @@ afterpulses separable from the main pulse.</li>
 <li><code>ap_rate_separable</code>: Afterpulse probability in units of afterpulses (separable from the main pulse) per PE.</li>
 <li><code>ap_rate_separable_unc</code>: Uncertainty of the afterpulse probability in units of afterpulses
 (separable from the main pulse) per PE.</li>
+<li><code>amp_thr_ap</code>: Lower amplitude threshold for afterpulse candidates.</li>
+<li><code>ap_rate_separable_above_thr</code>: Afterpulse probability in units of afterpulses (separable from the main pulse)
+per PE for afterpulse candidates with amplitudes above <code>amp_thr_ap</code>.</li>
+<li><code>ap_rate_separable_unc_above_thr</code>: Uncertainty of the afterpulse probability in units of afterpulses
+(separable from the main pulse) per PE for afterpulse candidates with amplitudes above <code>amp_thr_ap</code>.</li>
 </ul></div>
 <details class="source">
 <summary>
@@ -990,6 +1055,11 @@ afterpulses separable from the main pulse.</li>
     - `ap_rate_separable`: Afterpulse probability in units of afterpulses (separable from the main pulse) per PE.
     - `ap_rate_separable_unc`: Uncertainty of the afterpulse probability in units of afterpulses \
       (separable from the main pulse) per PE.
+    - `amp_thr_ap`: Lower amplitude threshold for afterpulse candidates.
+    - `ap_rate_separable_above_thr`: Afterpulse probability in units of afterpulses (separable from the main pulse)
+      per PE for afterpulse candidates with amplitudes above `amp_thr_ap`.
+    - `ap_rate_separable_unc_above_thr`: Uncertainty of the afterpulse probability in units of afterpulses
+      (separable from the main pulse) per PE for afterpulse candidates with amplitudes above `amp_thr_ap`.
     &#34;&#34;&#34;
     n_ap = self.df.shape[0]
     n_ap_separable = np.sum(self.df.separable)
@@ -1003,6 +1073,8 @@ afterpulses separable from the main pulse.</li>
         ap_rate_unc = None
         ap_rate_separable = None
         ap_rate_separable_unc = None
+        ap_rate_separable_above_thr = None
+        ap_rate_separable_unc_above_thr = None
     else:
         ap_rate = ap_fraction / self.occupancy
         ap_rate_separable = ap_fraction_separable / self.occupancy
@@ -1014,16 +1086,34 @@ afterpulses separable from the main pulse.</li>
         else:
             ap_rate_unc = ap_rate * np.sqrt((ap_fraction_unc/ap_fraction)**2
                                             + (self.occupancy_unc/self.occupancy)**2)
-            ap_rate_separable_unc = ap_rate_separable * np.sqrt((ap_fraction_separable_unc/
+            ap_rate_separable_unc = ap_rate_separable * np.sqrt((ap_fraction_separable_unc /
                                                                  ap_fraction_separable) ** 2
                                                                 + (self.occupancy_unc/self.occupancy) ** 2)
+        if self.amp_thr_ap is None:
+            warnings.warn(&#39;No lower amplitude threshold for afterpulse candidates provided.&#39;)
+            ap_rate_separable_above_thr = None
+            ap_rate_separable_unc_above_thr = None
+        else:
+            n_ap_separable_above_thr = np.sum(self.df.separable &amp; (self.df.p1_amplitude &gt;= self.amp_thr_ap))
+            ap_fraction_separable_above_thr = n_ap_separable_above_thr / self.n_samples
+            ap_fraction_separable_unc_above_thr = np.sqrt(n_ap_separable_above_thr) / self.n_samples
+            ap_rate_separable_above_thr = ap_fraction_separable_above_thr / self.occupancy
+            if self.occupancy_unc is None:
+                ap_rate_separable_unc_above_thr = None
+            else:
+                ap_rate_separable_unc_above_thr = (ap_rate_separable_above_thr
+                                                   * np.sqrt((ap_fraction_separable_unc_above_thr /
+                                                              ap_fraction_separable_above_thr) ** 2
+                                                             + (self.occupancy_unc / self.occupancy) ** 2))
 
     self.ap_rate_dict = {&#39;n_ap&#39;: n_ap, &#39;n_ap_separable&#39;: n_ap_separable,
                          &#39;ap_fraction&#39;: ap_fraction, &#39;ap_fraction_unc&#39;: ap_fraction_unc,
                          &#39;ap_fraction_separable&#39;: ap_fraction_separable,
                          &#39;ap_fraction_separable_unc&#39;: ap_fraction_separable_unc,
                          &#39;ap_rate&#39;: ap_rate, &#39;ap_rate_unc&#39;: ap_rate_unc,
-                         &#39;ap_rate_separable&#39;: ap_rate_separable, &#39;ap_rate_separable_unc&#39;: ap_rate_separable_unc
+                         &#39;ap_rate_separable&#39;: ap_rate_separable, &#39;ap_rate_separable_unc&#39;: ap_rate_separable_unc,
+                         &#39;amp_thr_ap&#39;: self.amp_thr_ap, &#39;ap_rate_separable_above_thr&#39;: ap_rate_separable_above_thr,
+                         &#39;ap_rate_separable_unc_above_thr&#39;: ap_rate_separable_unc_above_thr
                          }</code></pre>
 </details>
 </dd>
@@ -1065,8 +1155,7 @@ the main pulse.</dd>
     self.constrain_main_peak(trim=constrain_main_peak)
     self.get_ap_properties()
     self.multi_ap()
-    self.ap_rate()
-    # TODO: plotting, script</code></pre>
+    self.ap_rate()</code></pre>
 </details>
 </dd>
 <dt id="pmt_analysis.processing.afterpulses.AfterPulses.constrain_main_peak"><code class="name flex">

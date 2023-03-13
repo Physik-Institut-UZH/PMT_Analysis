@@ -14,7 +14,9 @@ class PlottingGainModelIndependent:
         input_dict: Dictionary with output results from the
             `pmt_analysis.analysis.model_independent.GainModelIndependent.compute` method.
         save_plots: Bool defining if plots are saved (as png and pdf).
+        show_plots: Bool defining if plots are displayed.
         save_dir: Target directory for saving the plots.
+        save_name_suffix: Measurement specific figure name suffix.
     """
 
     def __init__(self, input_dict: dict, save_plots: bool = False, show_plots: bool = True,

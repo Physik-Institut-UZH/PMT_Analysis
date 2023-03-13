@@ -12,15 +12,16 @@ class TestAfterPulse:
                                        'Loff0.5V_Lwid30ns_Lfreq300Hz_20221018_00')
     data = ADCRawData(input_path_adc_data).get_branch_data(0)
     ap = AfterPulses(data, adc_f=500e6, verbose=True, pre_filter_threshold=3, pre_filter_threshold_type='std',
-                     occupancy=1.7, occupancy_unc=0.2)
+                     occupancy=1.7, occupancy_unc=0.2, amp_thr_ap=42)
 
     def test_init(self):
         """Tests for the init of the `pmt_analysis.processing.afterpulses.Afterpulse` class."""
         ap_tmp = AfterPulses(self.data, adc_f=500e6, verbose=True, pre_filter_threshold=3,
-                             pre_filter_threshold_type='std', occupancy=1.7, occupancy_unc=0.2)
+                             pre_filter_threshold_type='std', occupancy=1.7, occupancy_unc=0.2,
+                             amp_thr_ap=42)
         assert ap_tmp.input_data.shape == (1540, 250)
         AfterPulses(self.data, adc_f=500e6, verbose=False, pre_filter_threshold=42, pre_filter_threshold_type='abs',
-                    occupancy=None, occupancy_unc=None)
+                    occupancy=None, occupancy_unc=None, amp_thr_ap=None)
         with pytest.raises(ValueError):
             AfterPulses(self.data, adc_f=500e6, pre_filter_threshold_type='invalid')
 
@@ -36,8 +37,9 @@ class TestAfterPulse:
     def test_find_ap(self):
         """Tests for the init of the `pmt_analysis.processing.afterpulses.Afterpulse.find_ap` method."""
         self.ap.find_ap(height=42, distance=6, prominence_std=8)
-        assert list(self.ap.__dict__.keys()) == ['adc_f', 'occupancy', 'occupancy_unc', 'input_data', 'input_data_std',
-                                                 'verbose', 'n_samples', 'df', 'ap_rate_dict']
+        assert list(self.ap.__dict__.keys()) == ['adc_f', 'occupancy', 'occupancy_unc', 'amp_thr_ap',
+                                                 'input_data', 'input_data_std', 'verbose', 'n_samples',
+                                                 'df', 'ap_rate_dict']
         assert self.ap.n_samples == 2000
         assert self.ap.df.shape == (5, 5)
         assert self.ap.df.at[0, 'p0_position'] == 145
@@ -71,14 +73,16 @@ class TestAfterPulse:
         self.ap.ap_rate()
         assert list(self.ap.ap_rate_dict.keys()) == ['n_ap', 'n_ap_separable', 'ap_fraction', 'ap_fraction_unc',
                                                      'ap_fraction_separable', 'ap_fraction_separable_unc', 'ap_rate',
-                                                     'ap_rate_unc', 'ap_rate_separable', 'ap_rate_separable_unc']
-        assert round(self.ap.ap_rate_dict['ap_rate'],4) == 0.0015
-        assert round(self.ap.ap_rate_dict['ap_rate_unc'],4) == 0.0007
-        assert round(self.ap.ap_rate_dict['ap_rate_separable'],4) == 0.0012
+                                                     'ap_rate_unc', 'ap_rate_separable', 'ap_rate_separable_unc',
+                                                     'amp_thr_ap', 'ap_rate_separable_above_thr',
+                                                     'ap_rate_separable_unc_above_thr']
+        assert round(self.ap.ap_rate_dict['ap_rate'], 4) == 0.0015
+        assert round(self.ap.ap_rate_dict['ap_rate_unc'], 4) == 0.0007
+        assert round(self.ap.ap_rate_dict['ap_rate_separable'], 4) == 0.0012
 
     def test_compute(self):
         """Tests for the init of the `pmt_analysis.processing.afterpulses.Afterpulse.compute` method."""
         ap = AfterPulses(self.data, adc_f=500e6, verbose=True, pre_filter_threshold=3, pre_filter_threshold_type='std',
-                         occupancy=1.7, occupancy_unc=0.2)
+                         occupancy=1.7, occupancy_unc=0.2, amp_thr_ap=42)
         ap.compute(height=42, distance=6, prominence_std=8, constrain_main_peak=True)
         assert round(ap.ap_rate_dict['ap_rate_separable'], 4) == 0.0012
