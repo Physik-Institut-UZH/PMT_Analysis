@@ -82,3 +82,5 @@ def compute() -> dict:
 # MAIN
 if __name__ == '__main__':
     estimates = compute()
+    if args.verbose:
+        print('Done.')

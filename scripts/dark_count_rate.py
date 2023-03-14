@@ -57,3 +57,5 @@ def compute() -> tuple:
 # MAIN
 if __name__ == '__main__':
     estimates = compute()
+    if args.verbose:
+        print('Done.')

@@ -183,3 +183,10 @@ class PlottingAfterpulses:
         else:
             plt.close()
         self.df.drop(columns=['p1_area_conv', 't_diff_us'], inplace=True)
+
+    def plot_essentials(self):
+        """Plot essential plots for afterpulse studies."""
+        self.plot_first_n_wfs(n=5)
+        self.plot_hist_tdiff()
+        self.plot_ap_area_vs_tdiff(separable_only=False)
+        self.plot_ap_area_vs_tdiff(separable_only=True)

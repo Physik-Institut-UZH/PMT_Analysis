@@ -37,7 +37,7 @@ class TestAfterPulse:
     def test_find_ap(self):
         """Tests for the init of the `pmt_analysis.processing.afterpulses.Afterpulse.find_ap` method."""
         self.ap.find_ap(height=42, distance=6, prominence_std=8)
-        assert list(self.ap.__dict__.keys()) == ['adc_f', 'occupancy', 'occupancy_unc', 'amp_thr_ap',
+        assert list(self.ap.__dict__.keys()) == ['adc_f', 'occupancy', 'occupancy_unc', 'amp_thr_ap', 't_thr_ap',
                                                  'input_data', 'input_data_std', 'verbose', 'n_samples',
                                                  'df', 'ap_rate_dict']
         assert self.ap.n_samples == 2000
@@ -74,7 +74,7 @@ class TestAfterPulse:
         assert list(self.ap.ap_rate_dict.keys()) == ['n_ap', 'n_ap_separable', 'ap_fraction', 'ap_fraction_unc',
                                                      'ap_fraction_separable', 'ap_fraction_separable_unc', 'ap_rate',
                                                      'ap_rate_unc', 'ap_rate_separable', 'ap_rate_separable_unc',
-                                                     'amp_thr_ap', 'ap_rate_separable_above_thr',
+                                                     'amp_thr_ap', 't_thr_ap', 'ap_rate_separable_above_thr',
                                                      'ap_rate_separable_unc_above_thr']
         assert round(self.ap.ap_rate_dict['ap_rate'], 4) == 0.0015
         assert round(self.ap.ap_rate_dict['ap_rate_unc'], 4) == 0.0007

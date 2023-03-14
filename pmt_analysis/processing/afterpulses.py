@@ -21,6 +21,7 @@ class AfterPulses:
         occupancy: Occupancy of the main pulse in PE per (LED) trigger.
         occupancy_unc: Occupancy uncertainty of the main pulse in PE per (LED) trigger.
         amp_thr_ap: Lower amplitude threshold for afterpulse candidates.
+        t_thr_ap: Lower time threshold for afterpulse candidates.
         n_samples: Total number of waveforms analyzed.
         df: Pandas dataframe with after pulse candidates and their properties.
         ap_rate_dict: Dictionary with resulting afterpulse rate value and uncertainty.
@@ -29,7 +30,7 @@ class AfterPulses:
     def __init__(self, input_data: np.ndarray, adc_f: float, verbose: bool = True,
                  pre_filter_threshold: float = 3, pre_filter_threshold_type: str = 'std',
                  occupancy: Optional[float] = None, occupancy_unc: Optional[float] = None,
-                 amp_thr_ap: Optional[float] = None):
+                 amp_thr_ap: Optional[float] = None, t_thr_ap: Optional[float] = None):
         """Init of the AfterPulses class.
 
         Args:
@@ -46,11 +47,13 @@ class AfterPulses:
             occupancy: Occupancy of the main pulse in PE per (LED) trigger.
             occupancy_unc: Occupancy uncertainty of the main pulse in PE per (LED) trigger.
             amp_thr_ap: Lower amplitude threshold for afterpulse candidates.
+            t_thr_ap: Lower time threshold for afterpulse candidates.
         """
         self.adc_f = adc_f
         self.occupancy = occupancy
         self.occupancy_unc = occupancy_unc
         self.amp_thr_ap = amp_thr_ap
+        self.t_thr_ap = t_thr_ap
         self.input_data = input_data
         self.input_data_std = FullWindow().get_baseline_std(self.input_data)
         self.verbose = verbose
@@ -363,10 +366,12 @@ class AfterPulses:
         - `ap_rate_separable_unc`: Uncertainty of the afterpulse probability in units of afterpulses \
           (separable from the main pulse) per PE.
         - `amp_thr_ap`: Lower amplitude threshold for afterpulse candidates.
+        - `t_thr_ap`: Lower time threshold for afterpulse candidates.
         - `ap_rate_separable_above_thr`: Afterpulse probability in units of afterpulses (separable from the main pulse)
-          per PE for afterpulse candidates with amplitudes above `amp_thr_ap`.
+          per PE for afterpulse candidates with amplitudes above `amp_thr_ap` and time differences above `t_thr_ap`.
         - `ap_rate_separable_unc_above_thr`: Uncertainty of the afterpulse probability in units of afterpulses
-          (separable from the main pulse) per PE for afterpulse candidates with amplitudes above `amp_thr_ap`.
+          (separable from the main pulse) per PE for afterpulse candidates with amplitudes above `amp_thr_ap`
+          and time differences above `t_thr_ap`.
         """
         n_ap = self.df.shape[0]
         n_ap_separable = np.sum(self.df.separable)
@@ -401,7 +406,14 @@ class AfterPulses:
                 ap_rate_separable_above_thr = None
                 ap_rate_separable_unc_above_thr = None
             else:
-                n_ap_separable_above_thr = np.sum(self.df.separable & (self.df.p1_amplitude >= self.amp_thr_ap))
+                if self.t_thr_ap is None:
+                    warnings.warn('No lower time threshold for afterpulse candidates provided, '
+                                  'will not apply temporal selection.')
+                    n_ap_separable_above_thr = np.sum(self.df.separable & (self.df.p1_amplitude >= self.amp_thr_ap))
+                else:
+                    n_ap_separable_above_thr = np.sum(self.df.separable
+                                                      & (self.df.p1_amplitude >= self.amp_thr_ap)
+                                                      & (self.df.t_diff_ns >= self.t_thr_ap))
                 ap_fraction_separable_above_thr = n_ap_separable_above_thr / self.n_samples
                 ap_fraction_separable_unc_above_thr = np.sqrt(n_ap_separable_above_thr) / self.n_samples
                 ap_rate_separable_above_thr = ap_fraction_separable_above_thr / self.occupancy
@@ -419,7 +431,8 @@ class AfterPulses:
                              'ap_fraction_separable_unc': ap_fraction_separable_unc,
                              'ap_rate': ap_rate, 'ap_rate_unc': ap_rate_unc,
                              'ap_rate_separable': ap_rate_separable, 'ap_rate_separable_unc': ap_rate_separable_unc,
-                             'amp_thr_ap': self.amp_thr_ap, 'ap_rate_separable_above_thr': ap_rate_separable_above_thr,
+                             'amp_thr_ap': self.amp_thr_ap, 't_thr_ap': self.t_thr_ap,
+                             'ap_rate_separable_above_thr': ap_rate_separable_above_thr,
                              'ap_rate_separable_unc_above_thr': ap_rate_separable_unc_above_thr
                              }
 
