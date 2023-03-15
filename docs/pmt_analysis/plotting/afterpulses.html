@@ -42,6 +42,7 @@ class PlottingAfterpulses:
 
         Attributes:
             df: Pandas dataframe with after pulse candidates and their properties.
+            ap_rate_dict: Dictionary with resulting afterpulse rate value and uncertainty.
             adc_f: ADC sampling frequency in samples per second as provided by same attribute of
                 `pmt_analysis.utils.input.ADCRawData`.
             adc_area_to_e: Conversion factor pulse area in ADC units to charge in units of elementary charge.
@@ -54,7 +55,7 @@ class PlottingAfterpulses:
             save_name_suffix: Measurement specific figure name suffix.
         &#34;&#34;&#34;
 
-    def __init__(self, df: pd.DataFrame, adc_f: float,
+    def __init__(self, df: pd.DataFrame, adc_f: float, ap_rate_dict: dict = None,
                  save_plots: bool = False, show_plots: bool = True,
                  save_dir: Optional[str] = None, save_name_suffix: Optional[str] = None,
                  adc_area_to_e: Optional[float] = None, gain: Optional[float] = None):
@@ -66,6 +67,7 @@ class PlottingAfterpulses:
             df: Pandas dataframe with after pulse candidates and their properties.
             adc_f: ADC sampling frequency in samples per second as provided by same attribute of
                 `pmt_analysis.utils.input.ADCRawData`.
+            ap_rate_dict: Dictionary with resulting afterpulse rate value and uncertainty.
             save_plots: Bool defining if plots are saved (as png and pdf).
             show_plots: Bool defining if plots are displayed.
             save_dir: Target directory for saving the plots.
@@ -76,6 +78,7 @@ class PlottingAfterpulses:
                 Obtainable with `pmt_analysis.analysis.model_independent.GainModelIndependent` class.
         &#34;&#34;&#34;
         self.df = df
+        self.ap_rate_dict = ap_rate_dict
         self.adc_f = adc_f
         self.adc_area_to_e = adc_area_to_e
         self.gain = gain
@@ -162,12 +165,13 @@ class PlottingAfterpulses:
         else:
             plt.close()
 
-    def plot_ap_area_vs_tdiff(self, separable_only=True, ymax=15):
+    def plot_ap_area_vs_tdiff(self, separable_only=True, ymax=15, show_thr=True):
         &#34;&#34;&#34;Plot afterpulse area vs time difference histogram.
 
         Args:
             separable_only: Constrain to afterpulse candidates separable from main pulse.
             ymax: Upper vertical axis plot limit.
+            show_thr: Display amplitude and time thresholds for `ap_rate_separable_above_thr`.
         &#34;&#34;&#34;
         well_defined = True
         if self.adc_area_to_e is None:
@@ -193,7 +197,27 @@ class PlottingAfterpulses:
         else:
             plt.hist2d(self.df[&#39;t_diff_us&#39;], self.df[&#39;p1_area_conv&#39;],
                        bins=(binsx, binsy), norm=matplotlib.colors.LogNorm())
+        if show_thr:
+            if self.ap_rate_dict is None:
+                warnings.warn(&#39;Cannot display thresholds as parameter ap_rate_dict is None.&#39;)
+            else:
+                if self.ap_rate_dict[&#39;amp_thr_ap&#39;] is not None:
+                    if self.ap_rate_dict[&#39;t_thr_ap&#39;] is not None:
+                        plt.plot([self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3, binsx[-1]],
+                                 [self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain]*2,
+                                 color=&#39;gray&#39;)
+                    else:
+                        plt.axhline(y=self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain, color=&#39;gray&#39;)
+                if self.ap_rate_dict[&#39;t_thr_ap&#39;] is not None:
+                    if self.ap_rate_dict[&#39;amp_thr_ap&#39;] is not None:
+                        plt.plot([self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3]*2,
+                                 [self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain, binsy[-1]],
+                                 color=&#39;gray&#39;)
+                    else:
+                        plt.axvline(x=self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3, color=&#39;gray&#39;)
         plt.xlabel(r&#39;Time Difference [$\mu$s]&#39;)
+        plt.xlim(binsx[0], binsx[-1])
+        plt.ylim(binsy[0], binsy[-1])
         if well_defined:
             plt.ylabel(&#39;Afterpulse Area [PE]&#39;)
         else:
@@ -231,7 +255,7 @@ class PlottingAfterpulses:
 <dl>
 <dt id="pmt_analysis.plotting.afterpulses.PlottingAfterpulses"><code class="flex name class">
 <span>class <span class="ident">PlottingAfterpulses</span></span>
-<span>(</span><span>df: pandas.core.frame.DataFrame, adc_f: float, save_plots: bool = False, show_plots: bool = True, save_dir: Optional[str] = None, save_name_suffix: Optional[str] = None, adc_area_to_e: Optional[float] = None, gain: Optional[float] = None)</span>
+<span>(</span><span>df: pandas.core.frame.DataFrame, adc_f: float, ap_rate_dict: dict = None, save_plots: bool = False, show_plots: bool = True, save_dir: Optional[str] = None, save_name_suffix: Optional[str] = None, adc_area_to_e: Optional[float] = None, gain: Optional[float] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Class for plots related to the afterpulse processing.</p>
@@ -239,6 +263,8 @@ class PlottingAfterpulses:
 <dl>
 <dt><strong><code>df</code></strong></dt>
 <dd>Pandas dataframe with after pulse candidates and their properties.</dd>
+<dt><strong><code>ap_rate_dict</code></strong></dt>
+<dd>Dictionary with resulting afterpulse rate value and uncertainty.</dd>
 <dt><strong><code>adc_f</code></strong></dt>
 <dd>ADC sampling frequency in samples per second as provided by same attribute of
 <code><a title="pmt_analysis.utils.input.ADCRawData" href="../utils/input.html#pmt_analysis.utils.input.ADCRawData">ADCRawData</a></code>.</dd>
@@ -266,6 +292,8 @@ Obtainable with <code><a title="pmt_analysis.analysis.model_independent.GainMode
 <dt><strong><code>adc_f</code></strong></dt>
 <dd>ADC sampling frequency in samples per second as provided by same attribute of
 <code><a title="pmt_analysis.utils.input.ADCRawData" href="../utils/input.html#pmt_analysis.utils.input.ADCRawData">ADCRawData</a></code>.</dd>
+<dt><strong><code>ap_rate_dict</code></strong></dt>
+<dd>Dictionary with resulting afterpulse rate value and uncertainty.</dd>
 <dt><strong><code>save_plots</code></strong></dt>
 <dd>Bool defining if plots are saved (as png and pdf).</dd>
 <dt><strong><code>show_plots</code></strong></dt>
@@ -291,6 +319,7 @@ Obtainable with <code><a title="pmt_analysis.analysis.model_independent.GainMode
 
         Attributes:
             df: Pandas dataframe with after pulse candidates and their properties.
+            ap_rate_dict: Dictionary with resulting afterpulse rate value and uncertainty.
             adc_f: ADC sampling frequency in samples per second as provided by same attribute of
                 `pmt_analysis.utils.input.ADCRawData`.
             adc_area_to_e: Conversion factor pulse area in ADC units to charge in units of elementary charge.
@@ -303,7 +332,7 @@ Obtainable with <code><a title="pmt_analysis.analysis.model_independent.GainMode
             save_name_suffix: Measurement specific figure name suffix.
         &#34;&#34;&#34;
 
-    def __init__(self, df: pd.DataFrame, adc_f: float,
+    def __init__(self, df: pd.DataFrame, adc_f: float, ap_rate_dict: dict = None,
                  save_plots: bool = False, show_plots: bool = True,
                  save_dir: Optional[str] = None, save_name_suffix: Optional[str] = None,
                  adc_area_to_e: Optional[float] = None, gain: Optional[float] = None):
@@ -315,6 +344,7 @@ Obtainable with <code><a title="pmt_analysis.analysis.model_independent.GainMode
             df: Pandas dataframe with after pulse candidates and their properties.
             adc_f: ADC sampling frequency in samples per second as provided by same attribute of
                 `pmt_analysis.utils.input.ADCRawData`.
+            ap_rate_dict: Dictionary with resulting afterpulse rate value and uncertainty.
             save_plots: Bool defining if plots are saved (as png and pdf).
             show_plots: Bool defining if plots are displayed.
             save_dir: Target directory for saving the plots.
@@ -325,6 +355,7 @@ Obtainable with <code><a title="pmt_analysis.analysis.model_independent.GainMode
                 Obtainable with `pmt_analysis.analysis.model_independent.GainModelIndependent` class.
         &#34;&#34;&#34;
         self.df = df
+        self.ap_rate_dict = ap_rate_dict
         self.adc_f = adc_f
         self.adc_area_to_e = adc_area_to_e
         self.gain = gain
@@ -411,12 +442,13 @@ Obtainable with <code><a title="pmt_analysis.analysis.model_independent.GainMode
         else:
             plt.close()
 
-    def plot_ap_area_vs_tdiff(self, separable_only=True, ymax=15):
+    def plot_ap_area_vs_tdiff(self, separable_only=True, ymax=15, show_thr=True):
         &#34;&#34;&#34;Plot afterpulse area vs time difference histogram.
 
         Args:
             separable_only: Constrain to afterpulse candidates separable from main pulse.
             ymax: Upper vertical axis plot limit.
+            show_thr: Display amplitude and time thresholds for `ap_rate_separable_above_thr`.
         &#34;&#34;&#34;
         well_defined = True
         if self.adc_area_to_e is None:
@@ -442,7 +474,27 @@ Obtainable with <code><a title="pmt_analysis.analysis.model_independent.GainMode
         else:
             plt.hist2d(self.df[&#39;t_diff_us&#39;], self.df[&#39;p1_area_conv&#39;],
                        bins=(binsx, binsy), norm=matplotlib.colors.LogNorm())
+        if show_thr:
+            if self.ap_rate_dict is None:
+                warnings.warn(&#39;Cannot display thresholds as parameter ap_rate_dict is None.&#39;)
+            else:
+                if self.ap_rate_dict[&#39;amp_thr_ap&#39;] is not None:
+                    if self.ap_rate_dict[&#39;t_thr_ap&#39;] is not None:
+                        plt.plot([self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3, binsx[-1]],
+                                 [self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain]*2,
+                                 color=&#39;gray&#39;)
+                    else:
+                        plt.axhline(y=self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain, color=&#39;gray&#39;)
+                if self.ap_rate_dict[&#39;t_thr_ap&#39;] is not None:
+                    if self.ap_rate_dict[&#39;amp_thr_ap&#39;] is not None:
+                        plt.plot([self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3]*2,
+                                 [self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain, binsy[-1]],
+                                 color=&#39;gray&#39;)
+                    else:
+                        plt.axvline(x=self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3, color=&#39;gray&#39;)
         plt.xlabel(r&#39;Time Difference [$\mu$s]&#39;)
+        plt.xlim(binsx[0], binsx[-1])
+        plt.ylim(binsy[0], binsy[-1])
         if well_defined:
             plt.ylabel(&#39;Afterpulse Area [PE]&#39;)
         else:
@@ -471,7 +523,7 @@ Obtainable with <code><a title="pmt_analysis.analysis.model_independent.GainMode
 <h3>Methods</h3>
 <dl>
 <dt id="pmt_analysis.plotting.afterpulses.PlottingAfterpulses.plot_ap_area_vs_tdiff"><code class="name flex">
-<span>def <span class="ident">plot_ap_area_vs_tdiff</span></span>(<span>self, separable_only=True, ymax=15)</span>
+<span>def <span class="ident">plot_ap_area_vs_tdiff</span></span>(<span>self, separable_only=True, ymax=15, show_thr=True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot afterpulse area vs time difference histogram.</p>
@@ -481,17 +533,20 @@ Obtainable with <code><a title="pmt_analysis.analysis.model_independent.GainMode
 <dd>Constrain to afterpulse candidates separable from main pulse.</dd>
 <dt><strong><code>ymax</code></strong></dt>
 <dd>Upper vertical axis plot limit.</dd>
+<dt><strong><code>show_thr</code></strong></dt>
+<dd>Display amplitude and time thresholds for <code>ap_rate_separable_above_thr</code>.</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def plot_ap_area_vs_tdiff(self, separable_only=True, ymax=15):
+<pre><code class="python">def plot_ap_area_vs_tdiff(self, separable_only=True, ymax=15, show_thr=True):
     &#34;&#34;&#34;Plot afterpulse area vs time difference histogram.
 
     Args:
         separable_only: Constrain to afterpulse candidates separable from main pulse.
         ymax: Upper vertical axis plot limit.
+        show_thr: Display amplitude and time thresholds for `ap_rate_separable_above_thr`.
     &#34;&#34;&#34;
     well_defined = True
     if self.adc_area_to_e is None:
@@ -517,7 +572,27 @@ Obtainable with <code><a title="pmt_analysis.analysis.model_independent.GainMode
     else:
         plt.hist2d(self.df[&#39;t_diff_us&#39;], self.df[&#39;p1_area_conv&#39;],
                    bins=(binsx, binsy), norm=matplotlib.colors.LogNorm())
+    if show_thr:
+        if self.ap_rate_dict is None:
+            warnings.warn(&#39;Cannot display thresholds as parameter ap_rate_dict is None.&#39;)
+        else:
+            if self.ap_rate_dict[&#39;amp_thr_ap&#39;] is not None:
+                if self.ap_rate_dict[&#39;t_thr_ap&#39;] is not None:
+                    plt.plot([self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3, binsx[-1]],
+                             [self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain]*2,
+                             color=&#39;gray&#39;)
+                else:
+                    plt.axhline(y=self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain, color=&#39;gray&#39;)
+            if self.ap_rate_dict[&#39;t_thr_ap&#39;] is not None:
+                if self.ap_rate_dict[&#39;amp_thr_ap&#39;] is not None:
+                    plt.plot([self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3]*2,
+                             [self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain, binsy[-1]],
+                             color=&#39;gray&#39;)
+                else:
+                    plt.axvline(x=self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3, color=&#39;gray&#39;)
     plt.xlabel(r&#39;Time Difference [$\mu$s]&#39;)
+    plt.xlim(binsx[0], binsx[-1])
+    plt.ylim(binsy[0], binsy[-1])
     if well_defined:
         plt.ylabel(&#39;Afterpulse Area [PE]&#39;)
     else:

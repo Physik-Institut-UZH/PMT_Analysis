@@ -117,6 +117,7 @@ def compute() -> tuple:
         print('Generating essential plots.')
     plotting_ap = PlottingAfterpulses(df=ap.df,
                                       adc_f=adc_f,
+                                      ap_rate_dict=ap.ap_rate_dict,
                                       adc_area_to_e=adc_area_to_e,
                                       gain=args.gain
                                       )

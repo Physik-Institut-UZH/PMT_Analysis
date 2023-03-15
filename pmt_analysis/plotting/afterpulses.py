@@ -14,6 +14,7 @@ class PlottingAfterpulses:
 
         Attributes:
             df: Pandas dataframe with after pulse candidates and their properties.
+            ap_rate_dict: Dictionary with resulting afterpulse rate value and uncertainty.
             adc_f: ADC sampling frequency in samples per second as provided by same attribute of
                 `pmt_analysis.utils.input.ADCRawData`.
             adc_area_to_e: Conversion factor pulse area in ADC units to charge in units of elementary charge.
@@ -26,7 +27,7 @@ class PlottingAfterpulses:
             save_name_suffix: Measurement specific figure name suffix.
         """
 
-    def __init__(self, df: pd.DataFrame, adc_f: float,
+    def __init__(self, df: pd.DataFrame, adc_f: float, ap_rate_dict: dict = None,
                  save_plots: bool = False, show_plots: bool = True,
                  save_dir: Optional[str] = None, save_name_suffix: Optional[str] = None,
                  adc_area_to_e: Optional[float] = None, gain: Optional[float] = None):
@@ -38,6 +39,7 @@ class PlottingAfterpulses:
             df: Pandas dataframe with after pulse candidates and their properties.
             adc_f: ADC sampling frequency in samples per second as provided by same attribute of
                 `pmt_analysis.utils.input.ADCRawData`.
+            ap_rate_dict: Dictionary with resulting afterpulse rate value and uncertainty.
             save_plots: Bool defining if plots are saved (as png and pdf).
             show_plots: Bool defining if plots are displayed.
             save_dir: Target directory for saving the plots.
@@ -48,6 +50,7 @@ class PlottingAfterpulses:
                 Obtainable with `pmt_analysis.analysis.model_independent.GainModelIndependent` class.
         """
         self.df = df
+        self.ap_rate_dict = ap_rate_dict
         self.adc_f = adc_f
         self.adc_area_to_e = adc_area_to_e
         self.gain = gain
@@ -134,12 +137,13 @@ class PlottingAfterpulses:
         else:
             plt.close()
 
-    def plot_ap_area_vs_tdiff(self, separable_only=True, ymax=15):
+    def plot_ap_area_vs_tdiff(self, separable_only=True, ymax=15, show_thr=True):
         """Plot afterpulse area vs time difference histogram.
 
         Args:
             separable_only: Constrain to afterpulse candidates separable from main pulse.
             ymax: Upper vertical axis plot limit.
+            show_thr: Display amplitude and time thresholds for `ap_rate_separable_above_thr`.
         """
         well_defined = True
         if self.adc_area_to_e is None:
@@ -165,7 +169,27 @@ class PlottingAfterpulses:
         else:
             plt.hist2d(self.df['t_diff_us'], self.df['p1_area_conv'],
                        bins=(binsx, binsy), norm=matplotlib.colors.LogNorm())
+        if show_thr:
+            if self.ap_rate_dict is None:
+                warnings.warn('Cannot display thresholds as parameter ap_rate_dict is None.')
+            else:
+                if self.ap_rate_dict['amp_thr_ap'] is not None:
+                    if self.ap_rate_dict['t_thr_ap'] is not None:
+                        plt.plot([self.ap_rate_dict['t_thr_ap']/1e3, binsx[-1]],
+                                 [self.ap_rate_dict['amp_thr_ap']*adc_area_to_e/gain]*2,
+                                 color='gray')
+                    else:
+                        plt.axhline(y=self.ap_rate_dict['amp_thr_ap']*adc_area_to_e/gain, color='gray')
+                if self.ap_rate_dict['t_thr_ap'] is not None:
+                    if self.ap_rate_dict['amp_thr_ap'] is not None:
+                        plt.plot([self.ap_rate_dict['t_thr_ap']/1e3]*2,
+                                 [self.ap_rate_dict['amp_thr_ap']*adc_area_to_e/gain, binsy[-1]],
+                                 color='gray')
+                    else:
+                        plt.axvline(x=self.ap_rate_dict['t_thr_ap']/1e3, color='gray')
         plt.xlabel(r'Time Difference [$\mu$s]')
+        plt.xlim(binsx[0], binsx[-1])
+        plt.ylim(binsy[0], binsy[-1])
         if well_defined:
             plt.ylabel('Afterpulse Area [PE]')
         else:
