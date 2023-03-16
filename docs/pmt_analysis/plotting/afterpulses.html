@@ -201,17 +201,17 @@ class PlottingAfterpulses:
             if self.ap_rate_dict is None:
                 warnings.warn(&#39;Cannot display thresholds as parameter ap_rate_dict is None.&#39;)
             else:
-                if self.ap_rate_dict[&#39;amp_thr_ap&#39;] is not None:
+                if self.ap_rate_dict[&#39;area_thr_ap&#39;] is not None:
                     if self.ap_rate_dict[&#39;t_thr_ap&#39;] is not None:
                         plt.plot([self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3, binsx[-1]],
-                                 [self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain]*2,
+                                 [self.ap_rate_dict[&#39;area_thr_ap&#39;]*adc_area_to_e/gain]*2,
                                  color=&#39;gray&#39;)
                     else:
-                        plt.axhline(y=self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain, color=&#39;gray&#39;)
+                        plt.axhline(y=self.ap_rate_dict[&#39;area_thr_ap&#39;]*adc_area_to_e/gain, color=&#39;gray&#39;)
                 if self.ap_rate_dict[&#39;t_thr_ap&#39;] is not None:
-                    if self.ap_rate_dict[&#39;amp_thr_ap&#39;] is not None:
+                    if self.ap_rate_dict[&#39;area_thr_ap&#39;] is not None:
                         plt.plot([self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3]*2,
-                                 [self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain, binsy[-1]],
+                                 [self.ap_rate_dict[&#39;area_thr_ap&#39;]*adc_area_to_e/gain, binsy[-1]],
                                  color=&#39;gray&#39;)
                     else:
                         plt.axvline(x=self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3, color=&#39;gray&#39;)
@@ -478,17 +478,17 @@ Obtainable with <code><a title="pmt_analysis.analysis.model_independent.GainMode
             if self.ap_rate_dict is None:
                 warnings.warn(&#39;Cannot display thresholds as parameter ap_rate_dict is None.&#39;)
             else:
-                if self.ap_rate_dict[&#39;amp_thr_ap&#39;] is not None:
+                if self.ap_rate_dict[&#39;area_thr_ap&#39;] is not None:
                     if self.ap_rate_dict[&#39;t_thr_ap&#39;] is not None:
                         plt.plot([self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3, binsx[-1]],
-                                 [self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain]*2,
+                                 [self.ap_rate_dict[&#39;area_thr_ap&#39;]*adc_area_to_e/gain]*2,
                                  color=&#39;gray&#39;)
                     else:
-                        plt.axhline(y=self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain, color=&#39;gray&#39;)
+                        plt.axhline(y=self.ap_rate_dict[&#39;area_thr_ap&#39;]*adc_area_to_e/gain, color=&#39;gray&#39;)
                 if self.ap_rate_dict[&#39;t_thr_ap&#39;] is not None:
-                    if self.ap_rate_dict[&#39;amp_thr_ap&#39;] is not None:
+                    if self.ap_rate_dict[&#39;area_thr_ap&#39;] is not None:
                         plt.plot([self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3]*2,
-                                 [self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain, binsy[-1]],
+                                 [self.ap_rate_dict[&#39;area_thr_ap&#39;]*adc_area_to_e/gain, binsy[-1]],
                                  color=&#39;gray&#39;)
                     else:
                         plt.axvline(x=self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3, color=&#39;gray&#39;)
@@ -576,17 +576,17 @@ Obtainable with <code><a title="pmt_analysis.analysis.model_independent.GainMode
         if self.ap_rate_dict is None:
             warnings.warn(&#39;Cannot display thresholds as parameter ap_rate_dict is None.&#39;)
         else:
-            if self.ap_rate_dict[&#39;amp_thr_ap&#39;] is not None:
+            if self.ap_rate_dict[&#39;area_thr_ap&#39;] is not None:
                 if self.ap_rate_dict[&#39;t_thr_ap&#39;] is not None:
                     plt.plot([self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3, binsx[-1]],
-                             [self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain]*2,
+                             [self.ap_rate_dict[&#39;area_thr_ap&#39;]*adc_area_to_e/gain]*2,
                              color=&#39;gray&#39;)
                 else:
-                    plt.axhline(y=self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain, color=&#39;gray&#39;)
+                    plt.axhline(y=self.ap_rate_dict[&#39;area_thr_ap&#39;]*adc_area_to_e/gain, color=&#39;gray&#39;)
             if self.ap_rate_dict[&#39;t_thr_ap&#39;] is not None:
-                if self.ap_rate_dict[&#39;amp_thr_ap&#39;] is not None:
+                if self.ap_rate_dict[&#39;area_thr_ap&#39;] is not None:
                     plt.plot([self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3]*2,
-                             [self.ap_rate_dict[&#39;amp_thr_ap&#39;]*adc_area_to_e/gain, binsy[-1]],
+                             [self.ap_rate_dict[&#39;area_thr_ap&#39;]*adc_area_to_e/gain, binsy[-1]],
                              color=&#39;gray&#39;)
                 else:
                     plt.axvline(x=self.ap_rate_dict[&#39;t_thr_ap&#39;]/1e3, color=&#39;gray&#39;)

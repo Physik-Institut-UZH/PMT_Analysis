@@ -173,17 +173,17 @@ class PlottingAfterpulses:
             if self.ap_rate_dict is None:
                 warnings.warn('Cannot display thresholds as parameter ap_rate_dict is None.')
             else:
-                if self.ap_rate_dict['amp_thr_ap'] is not None:
+                if self.ap_rate_dict['area_thr_ap'] is not None:
                     if self.ap_rate_dict['t_thr_ap'] is not None:
                         plt.plot([self.ap_rate_dict['t_thr_ap']/1e3, binsx[-1]],
-                                 [self.ap_rate_dict['amp_thr_ap']*adc_area_to_e/gain]*2,
+                                 [self.ap_rate_dict['area_thr_ap']*adc_area_to_e/gain]*2,
                                  color='gray')
                     else:
-                        plt.axhline(y=self.ap_rate_dict['amp_thr_ap']*adc_area_to_e/gain, color='gray')
+                        plt.axhline(y=self.ap_rate_dict['area_thr_ap']*adc_area_to_e/gain, color='gray')
                 if self.ap_rate_dict['t_thr_ap'] is not None:
-                    if self.ap_rate_dict['amp_thr_ap'] is not None:
+                    if self.ap_rate_dict['area_thr_ap'] is not None:
                         plt.plot([self.ap_rate_dict['t_thr_ap']/1e3]*2,
-                                 [self.ap_rate_dict['amp_thr_ap']*adc_area_to_e/gain, binsy[-1]],
+                                 [self.ap_rate_dict['area_thr_ap']*adc_area_to_e/gain, binsy[-1]],
                                  color='gray')
                     else:
                         plt.axvline(x=self.ap_rate_dict['t_thr_ap']/1e3, color='gray')

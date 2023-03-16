@@ -46,8 +46,8 @@ parser.add_argument('-u', '--occupancy_unc',
                     help='Occupancy uncertainty of the main pulse in PE per (LED) trigger.',
                     default=None,
                     type=float)
-parser.add_argument('-ta', '--amp_thr_ap',
-                    help='Lower amplitude threshold for afterpulse candidates.',
+parser.add_argument('-ta', '--area_thr_ap',
+                    help='Lower area threshold for afterpulse candidates.',
                     default=None,
                     type=float)
 parser.add_argument('-tt', '--t_thr_ap',
@@ -92,7 +92,7 @@ def compute() -> tuple:
                      pre_filter_threshold_type=args.pre_filter_threshold_type,
                      occupancy=args.occupancy,
                      occupancy_unc=args.occupancy_unc,
-                     amp_thr_ap=args.amp_thr_ap,
+                     area_thr_ap=args.area_thr_ap,
                      t_thr_ap=args.t_thr_ap
                      )
     # Afterpulse processing and analysis
