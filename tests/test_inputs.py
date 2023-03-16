@@ -66,4 +66,45 @@ class TestADCRawData:
         """Raise `TypeError` if incorrect branch name type is passed, here a list of strings."""
         with pytest.raises(TypeError):
             adc_test_data = ADCRawData(self.input_path_adc_data)
-            adc_test_data.get_branch_data(['wf0', 'wf1'])
+            adc_test_data.get_branch_data(['wf0', 'wf1'])  # type: ignore
+
+
+class TestScalerRawData:
+    """Tests for `pmt_analysis.utils.input.ScalerRawData` class."""
+    base_path = os.path.abspath(os.path.dirname(__file__))
+    input_path_scaler_data = os.path.join(base_path, 'data', 'scaler')
+
+    def test_input_formats(self):
+        """Test different allowed and unsupported input formats."""
+        assert len(ScalerRawData(files=self.input_path_scaler_data).files) == 2
+        assert len(ScalerRawData(files=os.path.join(self.input_path_scaler_data,
+                                                    'Scaler_test_data_1_221206.dat')).files) == 1
+        assert 'Scaler_test_data_1_221206.dat' in ScalerRawData(files=os.path.join(self.input_path_scaler_data,
+                                                                'Scaler_test_data_1_221206.dat')).files[0]
+        assert len(ScalerRawData(files=[os.path.join(self.input_path_scaler_data, 'Scaler_test_data_1_221206.dat'),
+                                        os.path.join(self.input_path_scaler_data, 'Scaler_test_data_2_221206.dat'),
+                                        os.path.join(self.input_path_scaler_data, 'does_not_exist.root')
+                                        ]).files) == 2
+        with pytest.warns(UserWarning):
+            ScalerRawData(files=[os.path.join(self.input_path_scaler_data, 'Scaler_test_data_1_221206.dat'),
+                                 os.path.join(self.input_path_scaler_data, 'Scaler_test_data_2_221206.dat'),
+                                 os.path.join(self.input_path_scaler_data, 'does_not_exist.root')
+                                 ])
+        with pytest.raises(ValueError):
+            ScalerRawData(files=os.path.join(self.base_path, 'data'))
+        with pytest.raises(ValueError):
+            ScalerRawData(files=os.path.join(self.base_path, 'does_not_exist'))
+        with pytest.raises(TypeError):
+            ScalerRawData(files=123)  # type: ignore
+        with pytest.raises(ValueError):
+            ScalerRawData(files=[os.path.join(self.input_path_scaler_data, 'does_not_exist.root')])
+
+    def test_t_int(self):
+        """Test correct extraction of data acquisition interval."""
+        assert ScalerRawData(files=self.input_path_scaler_data).t_int == 1
+
+    def test_get_data(self):
+        """Test of `pmt_analysis.utils.input.ScalerRawData.get_data` method and its outputs."""
+        data = ScalerRawData(files=self.input_path_scaler_data).get_data()
+        assert data.shape == (1998, 5)
+        assert data.loc[3, 'ch0_cnts'] == 30
