@@ -39,6 +39,18 @@ parser.add_argument('-v', '--verbose',
                     help='Set verbose output.',
                     default=True,
                     type=bool)
+parser.add_argument('-pt', '--partition_t',
+                    help='List of UNIX timestamps partitioning the data.',
+                    default=None,
+                    type=list)
+parser.add_argument('-pv', '--partition_v',
+                    help='Label values for partition_t timestamps.',
+                    default=None,
+                    type=list)
+parser.add_argument('-pu', '--partition_v_unit',
+                    help='Unit of partition_v values.',
+                    default=None,
+                    type=list)
 args = parser.parse_args()
 
 
@@ -49,7 +61,9 @@ def compute():
     t_int = scaler_raw_data.t_int
     data = scaler_raw_data.get_data()
     # Plot 2d histogram of time-dependent counts / count rates.
-    plotting_scaler = PlottingScaler(data=data, t_int=t_int, save_plots=False, show_plots=True)
+    plotting_scaler = PlottingScaler(data=data, t_int=t_int, save_plots=False, show_plots=True,
+                                     partition_t=args.partition_t, partition_v=args.partition_v,
+                                     partition_v_unit=args.partition_v_unit)
     plotting_scaler.plot_rate_evolution_hist2d(channel=args.channel, t_step_s=args.t_step_s, give_rate=args.give_rate)
 
 

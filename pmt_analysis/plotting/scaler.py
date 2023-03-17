@@ -3,6 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
+import warnings
 from typing import Optional
 
 
@@ -17,10 +18,17 @@ class PlottingScaler:
         save_plots: Bool defining if plots are saved (as png and pdf).
         show_plots: Bool defining if plots are displayed.
         save_dir: Target directory for saving the plots.
+        partition_t: List of UNIX timestamps partitioning the data, e.g. into different operation conditions,
+            such as opposing PMT voltages for light emission tests.
+        partition_v: Parameter values corresponding to different operation conditions set at times given in
+            `partition_t`, such as opposing PMT voltage values for light emission tests.
+        partition_v_unit: Unit of parameter represented by `partition_v`, e.g. `V` for the
+            opposing PMT voltage values for light emission tests.
     """
 
     def __init__(self, data: pd.DataFrame, t_int: int, save_plots: bool = False, show_plots: bool = True,
-                 save_dir: Optional[str] = None):
+                 save_dir: Optional[str] = None, partition_t: Optional[list] = None,
+                 partition_v: Optional[list] = None, partition_v_unit: Optional[str] = None):
         """
 
         Args:
@@ -31,6 +39,12 @@ class PlottingScaler:
             save_plots: Bool defining if plots are saved (as png and pdf).
             show_plots: Bool defining if plots are displayed.
             save_dir: Target directory for saving the plots.
+            partition_t: List of UNIX timestamps partitioning the data, e.g. into different operation conditions,
+                such as opposing PMT voltages for light emission tests.
+            partition_v: Parameter values corresponding to different operation conditions set at times given in
+                `partition_t`, such as opposing PMT voltage values for light emission tests.
+            partition_v_unit: Unit of parameter represented by `partition_v`, e.g. `'V'` for the
+                opposing PMT voltage values for light emission tests.
         """
         self.data = data
         self.t_int = t_int
@@ -39,6 +53,23 @@ class PlottingScaler:
         self.save_dir = save_dir
         if save_plots & (save_dir is None):
             raise NameError('save_dir must be defined if save_plots is True.')
+        self.partition_t = partition_t
+        if self.partition_t is not None:
+            self.partition_t = np.array(np.array(self.partition_t), dtype=float)
+        self.partition_v = partition_v
+        if self.partition_v is not None:
+            if self.partition_t is None:
+                warnings.warn('Ignore partition_v as partition_t is undefined.')
+                self.partition_v = None
+            elif np.array(self.partition_v).dtype == int:
+                self.partition_v = np.array(self.partition_v)
+            else:
+                self.partition_v = np.array(np.array(self.partition_v), dtype=float)
+        if self.partition_v is None:
+            warnings.warn('Ignore partition_v_unit as partition_t or partition_v are undefined.')
+            self.partition_v_unit = None
+        else:
+            self.partition_v_unit = partition_v_unit
 
     def plot_rate_evolution_hist2d(self, channel: int, t_step_s: int, time_format: str = 't_datetime_utc',
                                    give_rate: bool = False):
@@ -58,21 +89,34 @@ class PlottingScaler:
         # Convert time stamps to selected format
         if time_format == 't_s_rel':
             t_values = self.data['timestamp'] - self.data['timestamp'].min()
+            if self.partition_t is not None:
+                partition_t = self.partition_t - self.data['timestamp'].min()
             t_step = t_step_s
         elif time_format == 't_h_rel':
             t_values = (self.data['timestamp'] - self.data['timestamp'].min()) / 3600
+            if self.partition_t is not None:
+                partition_t = (self.partition_t - self.data['timestamp'].min()) / 3600
             t_step = t_step_s / 3600
         elif time_format == 't_d_rel':
             t_values = (self.data['timestamp'] - self.data['timestamp'].min()) / (24 * 3600)
+            if self.partition_t is not None:
+                partition_t = (self.partition_t - self.data['timestamp'].min()) / (24 * 3600)
             t_step = t_step_s / (24 * 3600)
         elif time_format == 't_datetime_utc':
             t_values = pd.to_datetime(self.data['timestamp'], unit='s', utc=True)
             t_values = t_values.map(lambda x: x.tz_localize(None))  # remove timezone holding local time representations
+            if self.partition_t is not None:
+                partition_t = pd.to_datetime(self.partition_t, unit='s', utc=True, errors='coerce')
+                partition_t = partition_t.map(lambda x: x.tz_localize(None))
             t_step = pd.Timedelta(t_step_s, 's')
         elif time_format == 't_datetime_zh':
             t_values = pd.to_datetime(self.data['timestamp'], unit='s', utc=True)
             t_values = t_values.map(lambda x: x.tz_convert('Europe/Zurich'))
             t_values = t_values.map(lambda x: x.tz_localize(None))  # remove timezone holding local time representations
+            if self.partition_t is not None:
+                partition_t = pd.to_datetime(self.partition_t, unit='s', utc=True, errors='coerce')
+                partition_t = partition_t.map(lambda x: x.tz_convert('Europe/Zurich'))
+                partition_t = partition_t.map(lambda x: x.tz_localize(None))
             t_step = pd.Timedelta(t_step_s, 's')
         else:
             raise ValueError('Value {} for time_format unsupported.'
@@ -94,7 +138,7 @@ class PlottingScaler:
             bins_y_05p = np.percentile(self.data['ch{}_cnts'.format(channel)], 5)
             bins_y_95p = np.percentile(self.data['ch{}_cnts'.format(channel)], 95)
         bins_y_min = bins_y_05p - (bins_y_95p - bins_y_05p)
-        bins_y_max = bins_y_95p + (bins_y_95p - bins_y_05p)
+        bins_y_max = bins_y_95p + 1.2*(bins_y_95p - bins_y_05p)
         if give_rate:
             bins_y = np.arange(bins_y_min, bins_y_max, 1)
         else:
@@ -108,6 +152,33 @@ class PlottingScaler:
         else:
             plt.hist2d(t_values, self.data['ch{}_cnts'.format(channel)],
                        bins=[bins_x, bins_y], cmap='Blues')
+
+        # Mark partitions
+        if self.partition_v is not None:
+            annotation_style = dict(size=6, color='gray', rotation='vertical',
+                                    horizontalalignment='left', verticalalignment='top')
+            annotation_y = max(bins_y) - (max(bins_y) - min(bins_y))/300
+        if self.partition_t is not None:
+            for i, part in enumerate(partition_t):
+                if not pd.isnull(part):
+                    plt.axvline(x=part, color='gray', linestyle='solid', alpha=0.7)
+                if (self.partition_v is not None) and (not pd.isnull(np.array(self.partition_v)[i])):
+                    if pd.isnull(part):
+                        annotation_x = min(bins_x)
+                    else:
+                        annotation_x = part
+                    annotation_x += (max(bins_x) - min(bins_x))/300
+                    if time_format in ['t_datetime_utc', 't_datetime_zh']:
+                        annotation_x = matplotlib.dates.date2num(annotation_x)
+                    if self.partition_v_unit is None:
+                        partition_v_unit = ''
+                    else:
+                        partition_v_unit = ' {}'.format(self.partition_v_unit)
+                    ax.text(annotation_x, annotation_y,
+                            '{}{}'.format(self.partition_v[i], partition_v_unit),
+                            **annotation_style)
+
+        # Adjust axes and labels
         if time_format == 't_s_rel':
             plt.xlabel('Time [s]')
         elif time_format == 't_h_rel':
@@ -131,6 +202,8 @@ class PlottingScaler:
                 plt.ylabel('Counts Per {} Seconds'.format(self.t_int))
         cbar = plt.colorbar()
         cbar.set_label('Entries')
+
+        # Output / save
         plt.tight_layout()
         filename = 'scaler_channel_{}_'.format(channel)
         if give_rate:
