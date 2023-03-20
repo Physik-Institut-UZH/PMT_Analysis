@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>pmt_analysis.analysis.scaler API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>pmt_analysis.analysis.scaler</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import numpy as np
+import pandas as pd
+import warnings
+from typing import Union, Optional
+
+
+class Scaler:
+    &#34;&#34;&#34;Class for the analysis of CAEN V260 scaler data loaded with `pmt_analysis.utils.input.ScalerRawData`.
+
+    Attributes:
+        data: Pandas data frame with scaler data as returned by
+            `pmt_analysis.utils.input.ScalerRawData.get_data` method.
+        t_int: Data acquisition interval in seconds. Attribute of
+            `pmt_analysis.utils.input.ScalerRawData` object.
+        partition_t: List of UNIX timestamps partitioning the data or integer number of seconds indicating the temporal
+            width of the consecutive partitions to split the data into.
+    &#34;&#34;&#34;
+
+    def __init__(self, data: pd.DataFrame,  t_int: int,
+                 partition_t: Optional[Union[np.ndarray, pd.Series, list, int]] = None):
+        &#34;&#34;&#34;Init of the Scaler class.
+
+        Args:
+            data: Pandas data frame with scaler data as returned by
+                `pmt_analysis.utils.input.ScalerRawData.get_data` method.
+            t_int: Data acquisition interval in seconds. Attribute of
+                `pmt_analysis.utils.input.ScalerRawData` object.
+            partition_t: Array of UNIX timestamps partitioning the data or integer number of seconds indicating the
+                temporal width of the consecutive partitions to split the data into. Indicate first timestamp as NaN
+                to automatically infer start time of the data taking. If set to None, handle full data set as one
+                partition.
+        &#34;&#34;&#34;
+        self.data = data
+        self.t_int = t_int
+        if type(partition_t) in [list, np.ndarray, pd.Series]:
+            self.partition_t = np.array(partition_t)
+            # Replace first entry if NaN in case of undefined start time
+            if np.isnan(self.partition_t[0]):
+                self.partition_t[0] = min(self.data[&#39;timestamp&#39;])
+        elif (type(partition_t) in [int]) or (partition_t is None):
+            self.partition_t = partition_t
+            self.get_partitions()
+        else:
+            raise TypeError(&#39;Parameter `partition_t` must be of type list or int.&#39;)
+        self.partition_t = np.sort(self.partition_t)
+
+    def get_partitions(self):
+        &#34;&#34;&#34;Get partition start timestamps for partitions of width `partition_t` seconds.&#34;&#34;&#34;
+        t_min = min(self.data[&#39;timestamp&#39;])
+        t_max = max(self.data[&#39;timestamp&#39;])
+        t_diff = t_max-t_min
+        if self.partition_t is None:
+            # Take full data set as one partition.
+            self.partition_t = np.array([t_min])
+        elif self.partition_t &gt; t_diff:
+            warnings.warn(&#39;Temporal extent of `data` ({}) &#39;
+                          &#39;smaller than `partition_t` ({}).&#39;.format(t_diff, self.partition_t))
+            # Take full data set as one partition.
+            self.partition_t = np.array([t_min])
+        else:
+            # Find partition start timestamps. The last partition may be larger than the provided `partition_t`.
+            self.partition_t = np.arange(t_diff//self.partition_t)*self.partition_t + t_min
+
+    def get_values(self, channel: int, give_rate: bool = False, verbose: bool = True,
+                   margin_start: float = 0, margin_end: float = 0) -&gt; dict:
+        &#34;&#34;&#34;Get characteristic values (median / most probable count / count rate value, standard deviations,...)
+        in partitions.
+
+        Args:
+            channel: Scaler channel number.
+            give_rate: If true, use count rates in Hz, otherwise use absolute count values.
+            verbose: Verbosity of the output.
+            margin_start: Margin in seconds of data to exclude after start of partition.
+            margin_end: Margin in seconds of data to exclude before end of partition.
+
+        Returns:
+            values_dict: Dictionary with following keys:
+                `t_start` UNIX timestamp start of partition,
+                `t_end` UNIX timestamp end of partition,
+                `bins_centers` bin centers histogram for mode determination,
+                `cnts` counts histogram for mode determination,
+                `w_window` rolling average window width for mode determination,
+                `cnts_smoothed` rolling average histogram for mode determination,
+                `mode` mode count / count rate value from smoothed histogram,
+                `median` median count / count rate value,
+                `mean` mean count / count rate value,
+                `perc_25` first quartile count / count rate value,
+                `perc_75` third quartile count / count rate value,
+                `std` standard deviation count / count rate value,
+                `std_mean` standard error of the mean count / count rate value
+        &#34;&#34;&#34;
+        values_dict = {key: [] for key in [&#39;t_start&#39;, &#39;t_end&#39;, &#39;bins_centers&#39;, &#39;cnts&#39;, &#39;w_window&#39;, &#39;cnts_smoothed&#39;,
+                                           &#39;mode&#39;, &#39;median&#39;, &#39;mean&#39;, &#39;perc_25&#39;, &#39;perc_75&#39;, &#39;std&#39;, &#39;std_mean&#39;]}
+        t_last_partition = max(self.partition_t)
+        if give_rate:
+            value_name = &#39;ch{}_freq&#39;.format(channel)
+        else:
+            value_name = &#39;ch{}_cnts&#39;.format(channel)
+        if margin_start &lt; 0:
+            margin_start = np.abs(margin_start)
+            warnings.warn(&#39;Converted margin_start to positive value.&#39;)
+        if margin_end &lt; 0:
+            margin_end = np.abs(margin_end)
+            warnings.warn(&#39;Converted margin_end to positive value.&#39;)
+        if (margin_end &gt; 300) or (margin_start &gt; 300):
+            warnings.warn(&#39;Values of more than 300s for margin_start and margin_end are discouraged.&#39;)
+        for i, t_start_partition in enumerate(self.partition_t):
+            values_dict[&#39;t_start&#39;].append(t_start_partition+margin_start)
+            if t_start_partition == t_last_partition:
+                t_start_next_partition = max(self.data[&#39;timestamp&#39;])
+                if margin_start+margin_end &gt;= t_start_next_partition-t_start_partition:
+                    raise ValueError(&#39;Margins are larger than partition.&#39;)
+                data_sel = self.data[value_name][(self.data[&#39;timestamp&#39;] &gt;= t_start_partition+margin_start) &amp;
+                                                 (self.data[&#39;timestamp&#39;] &lt;= t_start_next_partition-margin_end)]
+            else:
+                t_start_next_partition = self.partition_t[i+1]
+                if margin_start+margin_end &gt;= t_start_next_partition-t_start_partition:
+                    raise ValueError(&#39;Margins are larger than partition.&#39;)
+                data_sel = self.data[value_name][(self.data[&#39;timestamp&#39;] &gt;= t_start_partition+margin_start) &amp;
+                                                 (self.data[&#39;timestamp&#39;] &lt; t_start_next_partition-margin_end)]
+            values_dict[&#39;t_end&#39;].append(t_start_next_partition-margin_end)
+
+            # Get modes from smoothed data
+            p_05 = np.floor(np.percentile(data_sel, 5))
+            p_25 = np.percentile(data_sel, 25)
+            p_75 = np.percentile(data_sel, 75)
+            p_95 = np.ceil(np.percentile(data_sel, 95))
+            cnts, bins_edges = np.histogram(data_sel, bins=np.arange(p_05, p_95+1/self.t_int, 1/self.t_int))
+            bins_centers = (bins_edges[1:] + bins_edges[:-1]) / 2
+            values_dict[&#39;bins_centers&#39;].append(bins_centers)
+            values_dict[&#39;cnts&#39;].append(cnts)
+            # Smoothing, get window size based on ideal bin number from Sturges’ Rule
+            n_bins_ideal = np.ceil(np.log2(data_sel[(data_sel &gt;= p_25) &amp;
+                                                    (data_sel &lt;= p_75)].shape[0]) + 1)
+            w_bins_ideal = (p_75 - p_25)/n_bins_ideal
+            w_window = max(3, int(5*w_bins_ideal))  # smoothing window size ~ 5 ideal bin widths
+            values_dict[&#39;w_window&#39;].append(w_window)
+            cnts_smoothed = pd.Series(cnts).rolling(window=w_window, center=True, min_periods=1).mean()
+            values_dict[&#39;cnts_smoothed&#39;].append(np.array(cnts_smoothed))
+            mode_naive = np.mean(bins_centers[cnts_smoothed == np.max(cnts_smoothed)])
+            values_dict[&#39;mode&#39;].append(mode_naive)
+
+            # Other characteristic values
+            median = np.median(data_sel)
+            values_dict[&#39;median&#39;].append(median)
+            values_dict[&#39;mean&#39;].append(np.mean(data_sel))
+            std = np.std(data_sel)
+            values_dict[&#39;std&#39;].append(std)
+            values_dict[&#39;std_mean&#39;].append(std/np.sqrt(data_sel.shape[0]))
+            values_dict[&#39;perc_25&#39;].append(p_25)
+            values_dict[&#39;perc_75&#39;].append(p_75)
+
+            if np.unique([len(values_dict[el]) for el in values_dict.keys()]).shape[0] != 1:
+                warnings.warn(&#39;Entries in values_dict have different lengths.&#39;)
+            if verbose:
+                print(&#39;time: {:.0f}-{:.0f}, smoothing window: {}, mode: {}, &#39;
+                      &#39;median: {}&#39;.format(int(t_start_partition), int(t_start_next_partition), w_window,
+                                          mode_naive, median))
+
+        return values_dict</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="pmt_analysis.analysis.scaler.Scaler"><code class="flex name class">
+<span>class <span class="ident">Scaler</span></span>
+<span>(</span><span>data: pandas.core.frame.DataFrame, t_int: int, partition_t: Union[numpy.ndarray, pandas.core.series.Series, list, int, None] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Class for the analysis of CAEN V260 scaler data loaded with <code><a title="pmt_analysis.utils.input.ScalerRawData" href="../utils/input.html#pmt_analysis.utils.input.ScalerRawData">ScalerRawData</a></code>.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>data</code></strong></dt>
+<dd>Pandas data frame with scaler data as returned by
+<code><a title="pmt_analysis.utils.input.ScalerRawData.get_data" href="../utils/input.html#pmt_analysis.utils.input.ScalerRawData.get_data">ScalerRawData.get_data()</a></code> method.</dd>
+<dt><strong><code>t_int</code></strong></dt>
+<dd>Data acquisition interval in seconds. Attribute of
+<code><a title="pmt_analysis.utils.input.ScalerRawData" href="../utils/input.html#pmt_analysis.utils.input.ScalerRawData">ScalerRawData</a></code> object.</dd>
+<dt><strong><code>partition_t</code></strong></dt>
+<dd>List of UNIX timestamps partitioning the data or integer number of seconds indicating the temporal
+width of the consecutive partitions to split the data into.</dd>
+</dl>
+<p>Init of the Scaler class.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong></dt>
+<dd>Pandas data frame with scaler data as returned by
+<code><a title="pmt_analysis.utils.input.ScalerRawData.get_data" href="../utils/input.html#pmt_analysis.utils.input.ScalerRawData.get_data">ScalerRawData.get_data()</a></code> method.</dd>
+<dt><strong><code>t_int</code></strong></dt>
+<dd>Data acquisition interval in seconds. Attribute of
+<code><a title="pmt_analysis.utils.input.ScalerRawData" href="../utils/input.html#pmt_analysis.utils.input.ScalerRawData">ScalerRawData</a></code> object.</dd>
+<dt><strong><code>partition_t</code></strong></dt>
+<dd>Array of UNIX timestamps partitioning the data or integer number of seconds indicating the
+temporal width of the consecutive partitions to split the data into. Indicate first timestamp as NaN
+to automatically infer start time of the data taking. If set to None, handle full data set as one
+partition.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Scaler:
+    &#34;&#34;&#34;Class for the analysis of CAEN V260 scaler data loaded with `pmt_analysis.utils.input.ScalerRawData`.
+
+    Attributes:
+        data: Pandas data frame with scaler data as returned by
+            `pmt_analysis.utils.input.ScalerRawData.get_data` method.
+        t_int: Data acquisition interval in seconds. Attribute of
+            `pmt_analysis.utils.input.ScalerRawData` object.
+        partition_t: List of UNIX timestamps partitioning the data or integer number of seconds indicating the temporal
+            width of the consecutive partitions to split the data into.
+    &#34;&#34;&#34;
+
+    def __init__(self, data: pd.DataFrame,  t_int: int,
+                 partition_t: Optional[Union[np.ndarray, pd.Series, list, int]] = None):
+        &#34;&#34;&#34;Init of the Scaler class.
+
+        Args:
+            data: Pandas data frame with scaler data as returned by
+                `pmt_analysis.utils.input.ScalerRawData.get_data` method.
+            t_int: Data acquisition interval in seconds. Attribute of
+                `pmt_analysis.utils.input.ScalerRawData` object.
+            partition_t: Array of UNIX timestamps partitioning the data or integer number of seconds indicating the
+                temporal width of the consecutive partitions to split the data into. Indicate first timestamp as NaN
+                to automatically infer start time of the data taking. If set to None, handle full data set as one
+                partition.
+        &#34;&#34;&#34;
+        self.data = data
+        self.t_int = t_int
+        if type(partition_t) in [list, np.ndarray, pd.Series]:
+            self.partition_t = np.array(partition_t)
+            # Replace first entry if NaN in case of undefined start time
+            if np.isnan(self.partition_t[0]):
+                self.partition_t[0] = min(self.data[&#39;timestamp&#39;])
+        elif (type(partition_t) in [int]) or (partition_t is None):
+            self.partition_t = partition_t
+            self.get_partitions()
+        else:
+            raise TypeError(&#39;Parameter `partition_t` must be of type list or int.&#39;)
+        self.partition_t = np.sort(self.partition_t)
+
+    def get_partitions(self):
+        &#34;&#34;&#34;Get partition start timestamps for partitions of width `partition_t` seconds.&#34;&#34;&#34;
+        t_min = min(self.data[&#39;timestamp&#39;])
+        t_max = max(self.data[&#39;timestamp&#39;])
+        t_diff = t_max-t_min
+        if self.partition_t is None:
+            # Take full data set as one partition.
+            self.partition_t = np.array([t_min])
+        elif self.partition_t &gt; t_diff:
+            warnings.warn(&#39;Temporal extent of `data` ({}) &#39;
+                          &#39;smaller than `partition_t` ({}).&#39;.format(t_diff, self.partition_t))
+            # Take full data set as one partition.
+            self.partition_t = np.array([t_min])
+        else:
+            # Find partition start timestamps. The last partition may be larger than the provided `partition_t`.
+            self.partition_t = np.arange(t_diff//self.partition_t)*self.partition_t + t_min
+
+    def get_values(self, channel: int, give_rate: bool = False, verbose: bool = True,
+                   margin_start: float = 0, margin_end: float = 0) -&gt; dict:
+        &#34;&#34;&#34;Get characteristic values (median / most probable count / count rate value, standard deviations,...)
+        in partitions.
+
+        Args:
+            channel: Scaler channel number.
+            give_rate: If true, use count rates in Hz, otherwise use absolute count values.
+            verbose: Verbosity of the output.
+            margin_start: Margin in seconds of data to exclude after start of partition.
+            margin_end: Margin in seconds of data to exclude before end of partition.
+
+        Returns:
+            values_dict: Dictionary with following keys:
+                `t_start` UNIX timestamp start of partition,
+                `t_end` UNIX timestamp end of partition,
+                `bins_centers` bin centers histogram for mode determination,
+                `cnts` counts histogram for mode determination,
+                `w_window` rolling average window width for mode determination,
+                `cnts_smoothed` rolling average histogram for mode determination,
+                `mode` mode count / count rate value from smoothed histogram,
+                `median` median count / count rate value,
+                `mean` mean count / count rate value,
+                `perc_25` first quartile count / count rate value,
+                `perc_75` third quartile count / count rate value,
+                `std` standard deviation count / count rate value,
+                `std_mean` standard error of the mean count / count rate value
+        &#34;&#34;&#34;
+        values_dict = {key: [] for key in [&#39;t_start&#39;, &#39;t_end&#39;, &#39;bins_centers&#39;, &#39;cnts&#39;, &#39;w_window&#39;, &#39;cnts_smoothed&#39;,
+                                           &#39;mode&#39;, &#39;median&#39;, &#39;mean&#39;, &#39;perc_25&#39;, &#39;perc_75&#39;, &#39;std&#39;, &#39;std_mean&#39;]}
+        t_last_partition = max(self.partition_t)
+        if give_rate:
+            value_name = &#39;ch{}_freq&#39;.format(channel)
+        else:
+            value_name = &#39;ch{}_cnts&#39;.format(channel)
+        if margin_start &lt; 0:
+            margin_start = np.abs(margin_start)
+            warnings.warn(&#39;Converted margin_start to positive value.&#39;)
+        if margin_end &lt; 0:
+            margin_end = np.abs(margin_end)
+            warnings.warn(&#39;Converted margin_end to positive value.&#39;)
+        if (margin_end &gt; 300) or (margin_start &gt; 300):
+            warnings.warn(&#39;Values of more than 300s for margin_start and margin_end are discouraged.&#39;)
+        for i, t_start_partition in enumerate(self.partition_t):
+            values_dict[&#39;t_start&#39;].append(t_start_partition+margin_start)
+            if t_start_partition == t_last_partition:
+                t_start_next_partition = max(self.data[&#39;timestamp&#39;])
+                if margin_start+margin_end &gt;= t_start_next_partition-t_start_partition:
+                    raise ValueError(&#39;Margins are larger than partition.&#39;)
+                data_sel = self.data[value_name][(self.data[&#39;timestamp&#39;] &gt;= t_start_partition+margin_start) &amp;
+                                                 (self.data[&#39;timestamp&#39;] &lt;= t_start_next_partition-margin_end)]
+            else:
+                t_start_next_partition = self.partition_t[i+1]
+                if margin_start+margin_end &gt;= t_start_next_partition-t_start_partition:
+                    raise ValueError(&#39;Margins are larger than partition.&#39;)
+                data_sel = self.data[value_name][(self.data[&#39;timestamp&#39;] &gt;= t_start_partition+margin_start) &amp;
+                                                 (self.data[&#39;timestamp&#39;] &lt; t_start_next_partition-margin_end)]
+            values_dict[&#39;t_end&#39;].append(t_start_next_partition-margin_end)
+
+            # Get modes from smoothed data
+            p_05 = np.floor(np.percentile(data_sel, 5))
+            p_25 = np.percentile(data_sel, 25)
+            p_75 = np.percentile(data_sel, 75)
+            p_95 = np.ceil(np.percentile(data_sel, 95))
+            cnts, bins_edges = np.histogram(data_sel, bins=np.arange(p_05, p_95+1/self.t_int, 1/self.t_int))
+            bins_centers = (bins_edges[1:] + bins_edges[:-1]) / 2
+            values_dict[&#39;bins_centers&#39;].append(bins_centers)
+            values_dict[&#39;cnts&#39;].append(cnts)
+            # Smoothing, get window size based on ideal bin number from Sturges’ Rule
+            n_bins_ideal = np.ceil(np.log2(data_sel[(data_sel &gt;= p_25) &amp;
+                                                    (data_sel &lt;= p_75)].shape[0]) + 1)
+            w_bins_ideal = (p_75 - p_25)/n_bins_ideal
+            w_window = max(3, int(5*w_bins_ideal))  # smoothing window size ~ 5 ideal bin widths
+            values_dict[&#39;w_window&#39;].append(w_window)
+            cnts_smoothed = pd.Series(cnts).rolling(window=w_window, center=True, min_periods=1).mean()
+            values_dict[&#39;cnts_smoothed&#39;].append(np.array(cnts_smoothed))
+            mode_naive = np.mean(bins_centers[cnts_smoothed == np.max(cnts_smoothed)])
+            values_dict[&#39;mode&#39;].append(mode_naive)
+
+            # Other characteristic values
+            median = np.median(data_sel)
+            values_dict[&#39;median&#39;].append(median)
+            values_dict[&#39;mean&#39;].append(np.mean(data_sel))
+            std = np.std(data_sel)
+            values_dict[&#39;std&#39;].append(std)
+            values_dict[&#39;std_mean&#39;].append(std/np.sqrt(data_sel.shape[0]))
+            values_dict[&#39;perc_25&#39;].append(p_25)
+            values_dict[&#39;perc_75&#39;].append(p_75)
+
+            if np.unique([len(values_dict[el]) for el in values_dict.keys()]).shape[0] != 1:
+                warnings.warn(&#39;Entries in values_dict have different lengths.&#39;)
+            if verbose:
+                print(&#39;time: {:.0f}-{:.0f}, smoothing window: {}, mode: {}, &#39;
+                      &#39;median: {}&#39;.format(int(t_start_partition), int(t_start_next_partition), w_window,
+                                          mode_naive, median))
+
+        return values_dict</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="pmt_analysis.analysis.scaler.Scaler.get_partitions"><code class="name flex">
+<span>def <span class="ident">get_partitions</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get partition start timestamps for partitions of width <code>partition_t</code> seconds.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_partitions(self):
+    &#34;&#34;&#34;Get partition start timestamps for partitions of width `partition_t` seconds.&#34;&#34;&#34;
+    t_min = min(self.data[&#39;timestamp&#39;])
+    t_max = max(self.data[&#39;timestamp&#39;])
+    t_diff = t_max-t_min
+    if self.partition_t is None:
+        # Take full data set as one partition.
+        self.partition_t = np.array([t_min])
+    elif self.partition_t &gt; t_diff:
+        warnings.warn(&#39;Temporal extent of `data` ({}) &#39;
+                      &#39;smaller than `partition_t` ({}).&#39;.format(t_diff, self.partition_t))
+        # Take full data set as one partition.
+        self.partition_t = np.array([t_min])
+    else:
+        # Find partition start timestamps. The last partition may be larger than the provided `partition_t`.
+        self.partition_t = np.arange(t_diff//self.partition_t)*self.partition_t + t_min</code></pre>
+</details>
+</dd>
+<dt id="pmt_analysis.analysis.scaler.Scaler.get_values"><code class="name flex">
+<span>def <span class="ident">get_values</span></span>(<span>self, channel: int, give_rate: bool = False, verbose: bool = True, margin_start: float = 0, margin_end: float = 0) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get characteristic values (median / most probable count / count rate value, standard deviations,&hellip;)
+in partitions.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>channel</code></strong></dt>
+<dd>Scaler channel number.</dd>
+<dt><strong><code>give_rate</code></strong></dt>
+<dd>If true, use count rates in Hz, otherwise use absolute count values.</dd>
+<dt><strong><code>verbose</code></strong></dt>
+<dd>Verbosity of the output.</dd>
+<dt><strong><code>margin_start</code></strong></dt>
+<dd>Margin in seconds of data to exclude after start of partition.</dd>
+<dt><strong><code>margin_end</code></strong></dt>
+<dd>Margin in seconds of data to exclude before end of partition.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>values_dict</code></dt>
+<dd>Dictionary with following keys:
+<code>t_start</code> UNIX timestamp start of partition,
+<code>t_end</code> UNIX timestamp end of partition,
+<code>bins_centers</code> bin centers histogram for mode determination,
+<code>cnts</code> counts histogram for mode determination,
+<code>w_window</code> rolling average window width for mode determination,
+<code>cnts_smoothed</code> rolling average histogram for mode determination,
+<code>mode</code> mode count / count rate value from smoothed histogram,
+<code>median</code> median count / count rate value,
+<code>mean</code> mean count / count rate value,
+<code>perc_25</code> first quartile count / count rate value,
+<code>perc_75</code> third quartile count / count rate value,
+<code>std</code> standard deviation count / count rate value,
+<code>std_mean</code> standard error of the mean count / count rate value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_values(self, channel: int, give_rate: bool = False, verbose: bool = True,
+               margin_start: float = 0, margin_end: float = 0) -&gt; dict:
+    &#34;&#34;&#34;Get characteristic values (median / most probable count / count rate value, standard deviations,...)
+    in partitions.
+
+    Args:
+        channel: Scaler channel number.
+        give_rate: If true, use count rates in Hz, otherwise use absolute count values.
+        verbose: Verbosity of the output.
+        margin_start: Margin in seconds of data to exclude after start of partition.
+        margin_end: Margin in seconds of data to exclude before end of partition.
+
+    Returns:
+        values_dict: Dictionary with following keys:
+            `t_start` UNIX timestamp start of partition,
+            `t_end` UNIX timestamp end of partition,
+            `bins_centers` bin centers histogram for mode determination,
+            `cnts` counts histogram for mode determination,
+            `w_window` rolling average window width for mode determination,
+            `cnts_smoothed` rolling average histogram for mode determination,
+            `mode` mode count / count rate value from smoothed histogram,
+            `median` median count / count rate value,
+            `mean` mean count / count rate value,
+            `perc_25` first quartile count / count rate value,
+            `perc_75` third quartile count / count rate value,
+            `std` standard deviation count / count rate value,
+            `std_mean` standard error of the mean count / count rate value
+    &#34;&#34;&#34;
+    values_dict = {key: [] for key in [&#39;t_start&#39;, &#39;t_end&#39;, &#39;bins_centers&#39;, &#39;cnts&#39;, &#39;w_window&#39;, &#39;cnts_smoothed&#39;,
+                                       &#39;mode&#39;, &#39;median&#39;, &#39;mean&#39;, &#39;perc_25&#39;, &#39;perc_75&#39;, &#39;std&#39;, &#39;std_mean&#39;]}
+    t_last_partition = max(self.partition_t)
+    if give_rate:
+        value_name = &#39;ch{}_freq&#39;.format(channel)
+    else:
+        value_name = &#39;ch{}_cnts&#39;.format(channel)
+    if margin_start &lt; 0:
+        margin_start = np.abs(margin_start)
+        warnings.warn(&#39;Converted margin_start to positive value.&#39;)
+    if margin_end &lt; 0:
+        margin_end = np.abs(margin_end)
+        warnings.warn(&#39;Converted margin_end to positive value.&#39;)
+    if (margin_end &gt; 300) or (margin_start &gt; 300):
+        warnings.warn(&#39;Values of more than 300s for margin_start and margin_end are discouraged.&#39;)
+    for i, t_start_partition in enumerate(self.partition_t):
+        values_dict[&#39;t_start&#39;].append(t_start_partition+margin_start)
+        if t_start_partition == t_last_partition:
+            t_start_next_partition = max(self.data[&#39;timestamp&#39;])
+            if margin_start+margin_end &gt;= t_start_next_partition-t_start_partition:
+                raise ValueError(&#39;Margins are larger than partition.&#39;)
+            data_sel = self.data[value_name][(self.data[&#39;timestamp&#39;] &gt;= t_start_partition+margin_start) &amp;
+                                             (self.data[&#39;timestamp&#39;] &lt;= t_start_next_partition-margin_end)]
+        else:
+            t_start_next_partition = self.partition_t[i+1]
+            if margin_start+margin_end &gt;= t_start_next_partition-t_start_partition:
+                raise ValueError(&#39;Margins are larger than partition.&#39;)
+            data_sel = self.data[value_name][(self.data[&#39;timestamp&#39;] &gt;= t_start_partition+margin_start) &amp;
+                                             (self.data[&#39;timestamp&#39;] &lt; t_start_next_partition-margin_end)]
+        values_dict[&#39;t_end&#39;].append(t_start_next_partition-margin_end)
+
+        # Get modes from smoothed data
+        p_05 = np.floor(np.percentile(data_sel, 5))
+        p_25 = np.percentile(data_sel, 25)
+        p_75 = np.percentile(data_sel, 75)
+        p_95 = np.ceil(np.percentile(data_sel, 95))
+        cnts, bins_edges = np.histogram(data_sel, bins=np.arange(p_05, p_95+1/self.t_int, 1/self.t_int))
+        bins_centers = (bins_edges[1:] + bins_edges[:-1]) / 2
+        values_dict[&#39;bins_centers&#39;].append(bins_centers)
+        values_dict[&#39;cnts&#39;].append(cnts)
+        # Smoothing, get window size based on ideal bin number from Sturges’ Rule
+        n_bins_ideal = np.ceil(np.log2(data_sel[(data_sel &gt;= p_25) &amp;
+                                                (data_sel &lt;= p_75)].shape[0]) + 1)
+        w_bins_ideal = (p_75 - p_25)/n_bins_ideal
+        w_window = max(3, int(5*w_bins_ideal))  # smoothing window size ~ 5 ideal bin widths
+        values_dict[&#39;w_window&#39;].append(w_window)
+        cnts_smoothed = pd.Series(cnts).rolling(window=w_window, center=True, min_periods=1).mean()
+        values_dict[&#39;cnts_smoothed&#39;].append(np.array(cnts_smoothed))
+        mode_naive = np.mean(bins_centers[cnts_smoothed == np.max(cnts_smoothed)])
+        values_dict[&#39;mode&#39;].append(mode_naive)
+
+        # Other characteristic values
+        median = np.median(data_sel)
+        values_dict[&#39;median&#39;].append(median)
+        values_dict[&#39;mean&#39;].append(np.mean(data_sel))
+        std = np.std(data_sel)
+        values_dict[&#39;std&#39;].append(std)
+        values_dict[&#39;std_mean&#39;].append(std/np.sqrt(data_sel.shape[0]))
+        values_dict[&#39;perc_25&#39;].append(p_25)
+        values_dict[&#39;perc_75&#39;].append(p_75)
+
+        if np.unique([len(values_dict[el]) for el in values_dict.keys()]).shape[0] != 1:
+            warnings.warn(&#39;Entries in values_dict have different lengths.&#39;)
+        if verbose:
+            print(&#39;time: {:.0f}-{:.0f}, smoothing window: {}, mode: {}, &#39;
+                  &#39;median: {}&#39;.format(int(t_start_partition), int(t_start_next_partition), w_window,
+                                      mode_naive, median))
+
+    return values_dict</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="pmt_analysis.analysis" href="index.html">pmt_analysis.analysis</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="pmt_analysis.analysis.scaler.Scaler" href="#pmt_analysis.analysis.scaler.Scaler">Scaler</a></code></h4>
+<ul class="">
+<li><code><a title="pmt_analysis.analysis.scaler.Scaler.get_partitions" href="#pmt_analysis.analysis.scaler.Scaler.get_partitions">get_partitions</a></code></li>
+<li><code><a title="pmt_analysis.analysis.scaler.Scaler.get_values" href="#pmt_analysis.analysis.scaler.Scaler.get_values">get_values</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

@@ -43,6 +43,7 @@ class PlottingScaler:
             `pmt_analysis.utils.input.ScalerRawData.get_data` method.
         t_int: Data acquisition interval in seconds. Attribute of
             `pmt_analysis.utils.input.ScalerRawData` object.
+        give_rate: If true, use count rates on vertical axis, otherwise use absolute count values.
         save_plots: Bool defining if plots are saved (as png and pdf).
         show_plots: Bool defining if plots are displayed.
         save_dir: Target directory for saving the plots.
@@ -56,8 +57,9 @@ class PlottingScaler:
 
     def __init__(self, data: pd.DataFrame, t_int: int, save_plots: bool = False, show_plots: bool = True,
                  save_dir: Optional[str] = None, partition_t: Optional[list] = None,
-                 partition_v: Optional[list] = None, partition_v_unit: Optional[str] = None):
-        &#34;&#34;&#34;
+                 partition_v: Optional[list] = None, partition_v_unit: Optional[str] = None,
+                 give_rate: bool = False):
+        &#34;&#34;&#34;Init of the PlottingScaler class.
 
         Args:
             data: Pandas data frame with scaler data as returned by
@@ -73,9 +75,11 @@ class PlottingScaler:
                 `partition_t`, such as opposing PMT voltage values for light emission tests.
             partition_v_unit: Unit of parameter represented by `partition_v`, e.g. `&#39;V&#39;` for the
                 opposing PMT voltage values for light emission tests.
+            give_rate: If true, use count rates on vertical axis, otherwise use absolute count values.
         &#34;&#34;&#34;
         self.data = data
         self.t_int = t_int
+        self.give_rate = give_rate
         self.save_plots = save_plots
         self.show_plots = show_plots
         self.save_dir = save_dir
@@ -100,7 +104,7 @@ class PlottingScaler:
             self.partition_v_unit = partition_v_unit
 
     def plot_rate_evolution_hist2d(self, channel: int, t_step_s: int, time_format: str = &#39;t_datetime_utc&#39;,
-                                   give_rate: bool = False):
+                                   values_dict: Optional[dict] = None, m_value: Optional[str] = &#39;median&#39;):
         &#34;&#34;&#34;Plot 2d histogram of time-dependent counts / count rates.
 
         Args:
@@ -111,25 +115,46 @@ class PlottingScaler:
                 `t_h_rel` time difference in hours since start of data period;
                 `t_d_rel` time difference in days since start of data period;
                 `t_datetime_utc` UTC datetime;
-                `t_datetime_zh` datetime for Zurich time zone, i.e. CE(S)T;
-            give_rate: If true, use count rates on vertical axis, otherwise use absolute count values.
+                `t_datetime_zh` datetime for Zurich time zone, i.e. CE(S)T
+            values_dict: Dictionary with characteristic values in the partitions as obtained with
+                `pmt_analysis.analysis.scaler.Scaler.get_values` method.
+            m_value: Key of values from `values_dict` to use as characteristic values in partitions.
+                options: `&#39;median&#39;`, `&#39;mean&#39;`, `&#39;mode&#39;`.
         &#34;&#34;&#34;
+        if values_dict is not None:
+            m_value = m_value.lower()
+            if m_value not in [&#39;median&#39;, &#39;mean&#39;, &#39;mode&#39;]:
+                raise ValueError(&#39;Value {} for `m_value` not supported. Supported options: `median`, `mean`, `mode`&#39;)
+            m_vals = np.array(values_dict[m_value])
+            m_t_start = np.array(values_dict[&#39;t_start&#39;])
+            m_t_end = np.array(values_dict[&#39;t_end&#39;])
+            if np.unique([len(el) for el in [m_vals, m_t_start, m_t_end]]).shape[0] != 1:
+                raise ValueError(&#39;Length for {}, t_start, and t_end not equal.&#39;.format(m_value))
         # Convert time stamps to selected format
         if time_format == &#39;t_s_rel&#39;:
             t_values = self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()
             if self.partition_t is not None:
                 partition_t = self.partition_t - self.data[&#39;timestamp&#39;].min()
             t_step = t_step_s
+            if values_dict is not None:
+                m_t_start = m_t_start - np.min(m_t_start)
+                m_t_end = m_t_end - np.min(m_t_end)
         elif time_format == &#39;t_h_rel&#39;:
             t_values = (self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()) / 3600
             if self.partition_t is not None:
                 partition_t = (self.partition_t - self.data[&#39;timestamp&#39;].min()) / 3600
             t_step = t_step_s / 3600
+            if values_dict is not None:
+                m_t_start = (m_t_start - np.min(m_t_start)) / 3600
+                m_t_end = (m_t_end - np.min(m_t_end)) / 3600
         elif time_format == &#39;t_d_rel&#39;:
             t_values = (self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
             if self.partition_t is not None:
                 partition_t = (self.partition_t - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
             t_step = t_step_s / (24 * 3600)
+            if values_dict is not None:
+                m_t_start = (m_t_start - np.min(m_t_start)) / (24 * 3600)
+                m_t_end = (m_t_end - np.min(m_t_end)) / (24 * 3600)
         elif time_format == &#39;t_datetime_utc&#39;:
             t_values = pd.to_datetime(self.data[&#39;timestamp&#39;], unit=&#39;s&#39;, utc=True)
             t_values = t_values.map(lambda x: x.tz_localize(None))  # remove timezone holding local time representations
@@ -137,6 +162,11 @@ class PlottingScaler:
                 partition_t = pd.to_datetime(self.partition_t, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
                 partition_t = partition_t.map(lambda x: x.tz_localize(None))
             t_step = pd.Timedelta(t_step_s, &#39;s&#39;)
+            if values_dict is not None:
+                m_t_start = pd.to_datetime(m_t_start, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
+                m_t_start = m_t_start.map(lambda x: x.tz_localize(None))
+                m_t_end = pd.to_datetime(m_t_end, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
+                m_t_end = m_t_end.map(lambda x: x.tz_localize(None))
         elif time_format == &#39;t_datetime_zh&#39;:
             t_values = pd.to_datetime(self.data[&#39;timestamp&#39;], unit=&#39;s&#39;, utc=True)
             t_values = t_values.map(lambda x: x.tz_convert(&#39;Europe/Zurich&#39;))
@@ -146,6 +176,13 @@ class PlottingScaler:
                 partition_t = partition_t.map(lambda x: x.tz_convert(&#39;Europe/Zurich&#39;))
                 partition_t = partition_t.map(lambda x: x.tz_localize(None))
             t_step = pd.Timedelta(t_step_s, &#39;s&#39;)
+            if values_dict is not None:
+                m_t_start = pd.to_datetime(m_t_start, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
+                m_t_start = m_t_start.map(lambda x: x.tz_convert(&#39;Europe/Zurich&#39;))
+                m_t_start = m_t_start.map(lambda x: x.tz_localize(None))
+                m_t_end = pd.to_datetime(m_t_end, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
+                m_t_end = m_t_end.map(lambda x: x.tz_convert(&#39;Europe/Zurich&#39;))
+                m_t_end = m_t_end.map(lambda x: x.tz_localize(None))
         else:
             raise ValueError(&#39;Value {} for time_format unsupported.&#39;
                              &#39;Supported values: [t_s_rel, t_h_rel, t_d_rel, t_datetime_utc, &#39;
@@ -159,7 +196,7 @@ class PlottingScaler:
             bins_x = pd.to_datetime(bins_x)
 
         # Define count / count rate axis bins
-        if give_rate:
+        if self.give_rate:
             bins_y_05p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 5)
             bins_y_95p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 95)
         else:
@@ -167,14 +204,14 @@ class PlottingScaler:
             bins_y_95p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 95)
         bins_y_min = bins_y_05p - (bins_y_95p - bins_y_05p)
         bins_y_max = bins_y_95p + 1.2*(bins_y_95p - bins_y_05p)
-        if give_rate:
+        if self.give_rate:
             bins_y = np.arange(bins_y_min, bins_y_max, 1)
         else:
             bins_y = np.arange(bins_y_min, bins_y_max, self.t_int)
 
         # Generate plot
         fig, ax = plt.subplots()
-        if give_rate:
+        if self.give_rate:
             plt.hist2d(t_values, self.data[&#39;ch{}_freq&#39;.format(channel)],
                        bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
         else:
@@ -206,6 +243,11 @@ class PlottingScaler:
                             &#39;{}{}&#39;.format(self.partition_v[i], partition_v_unit),
                             **annotation_style)
 
+        # Give characteristic value partitions
+        if values_dict is not None:
+            for i, m_val in enumerate(m_vals):
+                plt.plot([m_t_start[i], m_t_end[i]], 2*[m_val], c=&#39;k&#39;, linewidth=1, linestyle=&#39;solid&#39;)
+
         # Adjust axes and labels
         if time_format == &#39;t_s_rel&#39;:
             plt.xlabel(&#39;Time [s]&#39;)
@@ -221,7 +263,7 @@ class PlottingScaler:
             plt.xlabel(&#39;Date&#39;)
             fig.autofmt_xdate(bottom=0.2, rotation=30, ha=&#39;right&#39;)
             ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter(&#39;%Y-%m-%d %H:%M&#39;))
-        if give_rate:
+        if self.give_rate:
             plt.ylabel(&#39;Count Rate [s$^{-1}$]&#39;)
         else:
             if self.t_int == 1:
@@ -234,19 +276,75 @@ class PlottingScaler:
         # Output / save
         plt.tight_layout()
         filename = &#39;scaler_channel_{}_&#39;.format(channel)
-        if give_rate:
+        if self.give_rate:
             filename += &#39;rate_vs_&#39;
         else:
             filename += &#39;counts_vs_&#39;
         filename += time_format
         filename += &#39;_{}-{}&#39;.format(self.data[&#39;timestamp&#39;].min(), self.data[&#39;timestamp&#39;].max())
+        if m_value is not None:
+            filename += &#39;_&#39;+m_value
         if self.save_plots:
             plt.savefig(os.path.join(self.save_dir, filename + &#39;.png&#39;))
             plt.savefig(os.path.join(self.save_dir, filename + &#39;.pdf&#39;))
         if self.show_plots:
             plt.show()
         else:
-            plt.close()</code></pre>
+            plt.close()
+
+    def plot_dist_in_partition(self, values_dict: dict, i: int = 0):
+        &#34;&#34;&#34;Plot count (rate) distribution in partition.
+
+        Args:
+            values_dict: Dictionary with characteristic values in the partitions as obtained with
+                `pmt_analysis.analysis.scaler.Scaler.get_values` method.
+            i: Partition index.
+        &#34;&#34;&#34;
+        plt.step(values_dict[&#39;bins_centers&#39;][i], values_dict[&#39;cnts&#39;][i], where=&#39;mid&#39;, color=&#39;C0&#39;)
+        plt.fill_between(values_dict[&#39;bins_centers&#39;][i],
+                         values_dict[&#39;cnts&#39;][i] - np.sqrt(values_dict[&#39;cnts&#39;][i]),
+                         values_dict[&#39;cnts&#39;][i] + np.sqrt(values_dict[&#39;cnts&#39;][i]),
+                         step=&#39;mid&#39;, color=&#39;C0&#39;, alpha=0.33, linewidth=0
+                         )
+        plt.plot(values_dict[&#39;bins_centers&#39;][i], values_dict[&#39;cnts_smoothed&#39;][i], color=&#39;C1&#39;)
+        plt.axvline(values_dict[&#39;mode&#39;][i], color=&#39;gray&#39;, linestyle=&#39;solid&#39;, label=&#39;Mode&#39;)
+        plt.axvline(values_dict[&#39;median&#39;][i], color=&#39;gray&#39;, linestyle=&#39;dashed&#39;, label=&#39;Median&#39;)
+        plt.axvline(values_dict[&#39;mean&#39;][i], color=&#39;gray&#39;, linestyle=&#39;dotted&#39;, label=&#39;Mean&#39;)
+        plt.xlim(min(values_dict[&#39;bins_centers&#39;][i]), max(values_dict[&#39;bins_centers&#39;][i]))
+        legend = plt.legend(loc=1, bbox_to_anchor=(0.99, 0.99), frameon=True, shadow=False, edgecolor=&#39;black&#39;,
+                            fancybox=False)
+        legend.get_frame().set_linewidth(0.75)
+        plt.ylabel(&#39;Entries&#39;)
+        if self.give_rate:
+            plt.xlabel(&#39;Count Rate [s$^{-1}$]&#39;)
+        else:
+            if self.t_int == 1:
+                plt.xlabel(&#39;Counts Per 1 Second&#39;)
+            else:
+                plt.xlabel(&#39;Counts Per {} Seconds&#39;.format(self.t_int))
+
+        plt.tight_layout()
+        if self.show_plots:
+            plt.show()
+        else:
+            plt.close()
+
+    def plot_dists_in_partitions(self, values_dict: dict):
+        &#34;&#34;&#34;Plot count (rate) distributions in all partitions.
+
+        Args:
+            values_dict: Dictionary with characteristic values in the partitions as obtained with
+                `pmt_analysis.analysis.scaler.Scaler.get_values` method.
+        &#34;&#34;&#34;
+        if (type(self.partition_t) in [int]) or (self.partition_t is None):
+            rng = 1
+        else:
+            rng = self.partition_t.shape[0]
+        for i in range(rng):
+            if self.show_plots:
+                print(&#39;Plot partition {} ({:.0f} - {:.0f})&#39;.format(i, values_dict[&#39;t_start&#39;][i],
+                                                                   values_dict[&#39;t_end&#39;][i]))
+            self.plot_dist_in_partition(values_dict, i=i)</code></pre>
 </details>
 </section>
 <section>
@@ -260,7 +358,7 @@ class PlottingScaler:
 <dl>
 <dt id="pmt_analysis.plotting.scaler.PlottingScaler"><code class="flex name class">
 <span>class <span class="ident">PlottingScaler</span></span>
-<span>(</span><span>data: pandas.core.frame.DataFrame, t_int: int, save_plots: bool = False, show_plots: bool = True, save_dir: Optional[str] = None, partition_t: Optional[list] = None, partition_v: Optional[list] = None, partition_v_unit: Optional[str] = None)</span>
+<span>(</span><span>data: pandas.core.frame.DataFrame, t_int: int, save_plots: bool = False, show_plots: bool = True, save_dir: Optional[str] = None, partition_t: Optional[list] = None, partition_v: Optional[list] = None, partition_v_unit: Optional[str] = None, give_rate: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Class for plotting of CAEN V260 scaler data and related dark count results.</p>
@@ -272,6 +370,8 @@ class PlottingScaler:
 <dt><strong><code>t_int</code></strong></dt>
 <dd>Data acquisition interval in seconds. Attribute of
 <code><a title="pmt_analysis.utils.input.ScalerRawData" href="../utils/input.html#pmt_analysis.utils.input.ScalerRawData">ScalerRawData</a></code> object.</dd>
+<dt><strong><code>give_rate</code></strong></dt>
+<dd>If true, use count rates on vertical axis, otherwise use absolute count values.</dd>
 <dt><strong><code>save_plots</code></strong></dt>
 <dd>Bool defining if plots are saved (as png and pdf).</dd>
 <dt><strong><code>show_plots</code></strong></dt>
@@ -288,6 +388,7 @@ such as opposing PMT voltages for light emission tests.</dd>
 <dd>Unit of parameter represented by <code>partition_v</code>, e.g. <code>V</code> for the
 opposing PMT voltage values for light emission tests.</dd>
 </dl>
+<p>Init of the PlottingScaler class.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>data</code></strong></dt>
@@ -311,6 +412,8 @@ such as opposing PMT voltages for light emission tests.</dd>
 <dt><strong><code>partition_v_unit</code></strong></dt>
 <dd>Unit of parameter represented by <code>partition_v</code>, e.g. <code>'V'</code> for the
 opposing PMT voltage values for light emission tests.</dd>
+<dt><strong><code>give_rate</code></strong></dt>
+<dd>If true, use count rates on vertical axis, otherwise use absolute count values.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -324,6 +427,7 @@ opposing PMT voltage values for light emission tests.</dd>
             `pmt_analysis.utils.input.ScalerRawData.get_data` method.
         t_int: Data acquisition interval in seconds. Attribute of
             `pmt_analysis.utils.input.ScalerRawData` object.
+        give_rate: If true, use count rates on vertical axis, otherwise use absolute count values.
         save_plots: Bool defining if plots are saved (as png and pdf).
         show_plots: Bool defining if plots are displayed.
         save_dir: Target directory for saving the plots.
@@ -337,8 +441,9 @@ opposing PMT voltage values for light emission tests.</dd>
 
     def __init__(self, data: pd.DataFrame, t_int: int, save_plots: bool = False, show_plots: bool = True,
                  save_dir: Optional[str] = None, partition_t: Optional[list] = None,
-                 partition_v: Optional[list] = None, partition_v_unit: Optional[str] = None):
-        &#34;&#34;&#34;
+                 partition_v: Optional[list] = None, partition_v_unit: Optional[str] = None,
+                 give_rate: bool = False):
+        &#34;&#34;&#34;Init of the PlottingScaler class.
 
         Args:
             data: Pandas data frame with scaler data as returned by
@@ -354,9 +459,11 @@ opposing PMT voltage values for light emission tests.</dd>
                 `partition_t`, such as opposing PMT voltage values for light emission tests.
             partition_v_unit: Unit of parameter represented by `partition_v`, e.g. `&#39;V&#39;` for the
                 opposing PMT voltage values for light emission tests.
+            give_rate: If true, use count rates on vertical axis, otherwise use absolute count values.
         &#34;&#34;&#34;
         self.data = data
         self.t_int = t_int
+        self.give_rate = give_rate
         self.save_plots = save_plots
         self.show_plots = show_plots
         self.save_dir = save_dir
@@ -381,7 +488,7 @@ opposing PMT voltage values for light emission tests.</dd>
             self.partition_v_unit = partition_v_unit
 
     def plot_rate_evolution_hist2d(self, channel: int, t_step_s: int, time_format: str = &#39;t_datetime_utc&#39;,
-                                   give_rate: bool = False):
+                                   values_dict: Optional[dict] = None, m_value: Optional[str] = &#39;median&#39;):
         &#34;&#34;&#34;Plot 2d histogram of time-dependent counts / count rates.
 
         Args:
@@ -392,25 +499,46 @@ opposing PMT voltage values for light emission tests.</dd>
                 `t_h_rel` time difference in hours since start of data period;
                 `t_d_rel` time difference in days since start of data period;
                 `t_datetime_utc` UTC datetime;
-                `t_datetime_zh` datetime for Zurich time zone, i.e. CE(S)T;
-            give_rate: If true, use count rates on vertical axis, otherwise use absolute count values.
+                `t_datetime_zh` datetime for Zurich time zone, i.e. CE(S)T
+            values_dict: Dictionary with characteristic values in the partitions as obtained with
+                `pmt_analysis.analysis.scaler.Scaler.get_values` method.
+            m_value: Key of values from `values_dict` to use as characteristic values in partitions.
+                options: `&#39;median&#39;`, `&#39;mean&#39;`, `&#39;mode&#39;`.
         &#34;&#34;&#34;
+        if values_dict is not None:
+            m_value = m_value.lower()
+            if m_value not in [&#39;median&#39;, &#39;mean&#39;, &#39;mode&#39;]:
+                raise ValueError(&#39;Value {} for `m_value` not supported. Supported options: `median`, `mean`, `mode`&#39;)
+            m_vals = np.array(values_dict[m_value])
+            m_t_start = np.array(values_dict[&#39;t_start&#39;])
+            m_t_end = np.array(values_dict[&#39;t_end&#39;])
+            if np.unique([len(el) for el in [m_vals, m_t_start, m_t_end]]).shape[0] != 1:
+                raise ValueError(&#39;Length for {}, t_start, and t_end not equal.&#39;.format(m_value))
         # Convert time stamps to selected format
         if time_format == &#39;t_s_rel&#39;:
             t_values = self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()
             if self.partition_t is not None:
                 partition_t = self.partition_t - self.data[&#39;timestamp&#39;].min()
             t_step = t_step_s
+            if values_dict is not None:
+                m_t_start = m_t_start - np.min(m_t_start)
+                m_t_end = m_t_end - np.min(m_t_end)
         elif time_format == &#39;t_h_rel&#39;:
             t_values = (self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()) / 3600
             if self.partition_t is not None:
                 partition_t = (self.partition_t - self.data[&#39;timestamp&#39;].min()) / 3600
             t_step = t_step_s / 3600
+            if values_dict is not None:
+                m_t_start = (m_t_start - np.min(m_t_start)) / 3600
+                m_t_end = (m_t_end - np.min(m_t_end)) / 3600
         elif time_format == &#39;t_d_rel&#39;:
             t_values = (self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
             if self.partition_t is not None:
                 partition_t = (self.partition_t - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
             t_step = t_step_s / (24 * 3600)
+            if values_dict is not None:
+                m_t_start = (m_t_start - np.min(m_t_start)) / (24 * 3600)
+                m_t_end = (m_t_end - np.min(m_t_end)) / (24 * 3600)
         elif time_format == &#39;t_datetime_utc&#39;:
             t_values = pd.to_datetime(self.data[&#39;timestamp&#39;], unit=&#39;s&#39;, utc=True)
             t_values = t_values.map(lambda x: x.tz_localize(None))  # remove timezone holding local time representations
@@ -418,6 +546,11 @@ opposing PMT voltage values for light emission tests.</dd>
                 partition_t = pd.to_datetime(self.partition_t, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
                 partition_t = partition_t.map(lambda x: x.tz_localize(None))
             t_step = pd.Timedelta(t_step_s, &#39;s&#39;)
+            if values_dict is not None:
+                m_t_start = pd.to_datetime(m_t_start, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
+                m_t_start = m_t_start.map(lambda x: x.tz_localize(None))
+                m_t_end = pd.to_datetime(m_t_end, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
+                m_t_end = m_t_end.map(lambda x: x.tz_localize(None))
         elif time_format == &#39;t_datetime_zh&#39;:
             t_values = pd.to_datetime(self.data[&#39;timestamp&#39;], unit=&#39;s&#39;, utc=True)
             t_values = t_values.map(lambda x: x.tz_convert(&#39;Europe/Zurich&#39;))
@@ -427,6 +560,13 @@ opposing PMT voltage values for light emission tests.</dd>
                 partition_t = partition_t.map(lambda x: x.tz_convert(&#39;Europe/Zurich&#39;))
                 partition_t = partition_t.map(lambda x: x.tz_localize(None))
             t_step = pd.Timedelta(t_step_s, &#39;s&#39;)
+            if values_dict is not None:
+                m_t_start = pd.to_datetime(m_t_start, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
+                m_t_start = m_t_start.map(lambda x: x.tz_convert(&#39;Europe/Zurich&#39;))
+                m_t_start = m_t_start.map(lambda x: x.tz_localize(None))
+                m_t_end = pd.to_datetime(m_t_end, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
+                m_t_end = m_t_end.map(lambda x: x.tz_convert(&#39;Europe/Zurich&#39;))
+                m_t_end = m_t_end.map(lambda x: x.tz_localize(None))
         else:
             raise ValueError(&#39;Value {} for time_format unsupported.&#39;
                              &#39;Supported values: [t_s_rel, t_h_rel, t_d_rel, t_datetime_utc, &#39;
@@ -440,7 +580,7 @@ opposing PMT voltage values for light emission tests.</dd>
             bins_x = pd.to_datetime(bins_x)
 
         # Define count / count rate axis bins
-        if give_rate:
+        if self.give_rate:
             bins_y_05p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 5)
             bins_y_95p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 95)
         else:
@@ -448,14 +588,14 @@ opposing PMT voltage values for light emission tests.</dd>
             bins_y_95p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 95)
         bins_y_min = bins_y_05p - (bins_y_95p - bins_y_05p)
         bins_y_max = bins_y_95p + 1.2*(bins_y_95p - bins_y_05p)
-        if give_rate:
+        if self.give_rate:
             bins_y = np.arange(bins_y_min, bins_y_max, 1)
         else:
             bins_y = np.arange(bins_y_min, bins_y_max, self.t_int)
 
         # Generate plot
         fig, ax = plt.subplots()
-        if give_rate:
+        if self.give_rate:
             plt.hist2d(t_values, self.data[&#39;ch{}_freq&#39;.format(channel)],
                        bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
         else:
@@ -487,6 +627,11 @@ opposing PMT voltage values for light emission tests.</dd>
                             &#39;{}{}&#39;.format(self.partition_v[i], partition_v_unit),
                             **annotation_style)
 
+        # Give characteristic value partitions
+        if values_dict is not None:
+            for i, m_val in enumerate(m_vals):
+                plt.plot([m_t_start[i], m_t_end[i]], 2*[m_val], c=&#39;k&#39;, linewidth=1, linestyle=&#39;solid&#39;)
+
         # Adjust axes and labels
         if time_format == &#39;t_s_rel&#39;:
             plt.xlabel(&#39;Time [s]&#39;)
@@ -502,7 +647,7 @@ opposing PMT voltage values for light emission tests.</dd>
             plt.xlabel(&#39;Date&#39;)
             fig.autofmt_xdate(bottom=0.2, rotation=30, ha=&#39;right&#39;)
             ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter(&#39;%Y-%m-%d %H:%M&#39;))
-        if give_rate:
+        if self.give_rate:
             plt.ylabel(&#39;Count Rate [s$^{-1}$]&#39;)
         else:
             if self.t_int == 1:
@@ -515,24 +660,168 @@ opposing PMT voltage values for light emission tests.</dd>
         # Output / save
         plt.tight_layout()
         filename = &#39;scaler_channel_{}_&#39;.format(channel)
-        if give_rate:
+        if self.give_rate:
             filename += &#39;rate_vs_&#39;
         else:
             filename += &#39;counts_vs_&#39;
         filename += time_format
         filename += &#39;_{}-{}&#39;.format(self.data[&#39;timestamp&#39;].min(), self.data[&#39;timestamp&#39;].max())
+        if m_value is not None:
+            filename += &#39;_&#39;+m_value
         if self.save_plots:
             plt.savefig(os.path.join(self.save_dir, filename + &#39;.png&#39;))
             plt.savefig(os.path.join(self.save_dir, filename + &#39;.pdf&#39;))
         if self.show_plots:
             plt.show()
         else:
-            plt.close()</code></pre>
+            plt.close()
+
+    def plot_dist_in_partition(self, values_dict: dict, i: int = 0):
+        &#34;&#34;&#34;Plot count (rate) distribution in partition.
+
+        Args:
+            values_dict: Dictionary with characteristic values in the partitions as obtained with
+                `pmt_analysis.analysis.scaler.Scaler.get_values` method.
+            i: Partition index.
+        &#34;&#34;&#34;
+        plt.step(values_dict[&#39;bins_centers&#39;][i], values_dict[&#39;cnts&#39;][i], where=&#39;mid&#39;, color=&#39;C0&#39;)
+        plt.fill_between(values_dict[&#39;bins_centers&#39;][i],
+                         values_dict[&#39;cnts&#39;][i] - np.sqrt(values_dict[&#39;cnts&#39;][i]),
+                         values_dict[&#39;cnts&#39;][i] + np.sqrt(values_dict[&#39;cnts&#39;][i]),
+                         step=&#39;mid&#39;, color=&#39;C0&#39;, alpha=0.33, linewidth=0
+                         )
+        plt.plot(values_dict[&#39;bins_centers&#39;][i], values_dict[&#39;cnts_smoothed&#39;][i], color=&#39;C1&#39;)
+        plt.axvline(values_dict[&#39;mode&#39;][i], color=&#39;gray&#39;, linestyle=&#39;solid&#39;, label=&#39;Mode&#39;)
+        plt.axvline(values_dict[&#39;median&#39;][i], color=&#39;gray&#39;, linestyle=&#39;dashed&#39;, label=&#39;Median&#39;)
+        plt.axvline(values_dict[&#39;mean&#39;][i], color=&#39;gray&#39;, linestyle=&#39;dotted&#39;, label=&#39;Mean&#39;)
+        plt.xlim(min(values_dict[&#39;bins_centers&#39;][i]), max(values_dict[&#39;bins_centers&#39;][i]))
+        legend = plt.legend(loc=1, bbox_to_anchor=(0.99, 0.99), frameon=True, shadow=False, edgecolor=&#39;black&#39;,
+                            fancybox=False)
+        legend.get_frame().set_linewidth(0.75)
+        plt.ylabel(&#39;Entries&#39;)
+        if self.give_rate:
+            plt.xlabel(&#39;Count Rate [s$^{-1}$]&#39;)
+        else:
+            if self.t_int == 1:
+                plt.xlabel(&#39;Counts Per 1 Second&#39;)
+            else:
+                plt.xlabel(&#39;Counts Per {} Seconds&#39;.format(self.t_int))
+
+        plt.tight_layout()
+        if self.show_plots:
+            plt.show()
+        else:
+            plt.close()
+
+    def plot_dists_in_partitions(self, values_dict: dict):
+        &#34;&#34;&#34;Plot count (rate) distributions in all partitions.
+
+        Args:
+            values_dict: Dictionary with characteristic values in the partitions as obtained with
+                `pmt_analysis.analysis.scaler.Scaler.get_values` method.
+        &#34;&#34;&#34;
+        if (type(self.partition_t) in [int]) or (self.partition_t is None):
+            rng = 1
+        else:
+            rng = self.partition_t.shape[0]
+        for i in range(rng):
+            if self.show_plots:
+                print(&#39;Plot partition {} ({:.0f} - {:.0f})&#39;.format(i, values_dict[&#39;t_start&#39;][i],
+                                                                   values_dict[&#39;t_end&#39;][i]))
+            self.plot_dist_in_partition(values_dict, i=i)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="pmt_analysis.plotting.scaler.PlottingScaler.plot_dist_in_partition"><code class="name flex">
+<span>def <span class="ident">plot_dist_in_partition</span></span>(<span>self, values_dict: dict, i: int = 0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot count (rate) distribution in partition.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>values_dict</code></strong></dt>
+<dd>Dictionary with characteristic values in the partitions as obtained with
+<code><a title="pmt_analysis.analysis.scaler.Scaler.get_values" href="../analysis/scaler.html#pmt_analysis.analysis.scaler.Scaler.get_values">Scaler.get_values()</a></code> method.</dd>
+<dt><strong><code>i</code></strong></dt>
+<dd>Partition index.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_dist_in_partition(self, values_dict: dict, i: int = 0):
+    &#34;&#34;&#34;Plot count (rate) distribution in partition.
+
+    Args:
+        values_dict: Dictionary with characteristic values in the partitions as obtained with
+            `pmt_analysis.analysis.scaler.Scaler.get_values` method.
+        i: Partition index.
+    &#34;&#34;&#34;
+    plt.step(values_dict[&#39;bins_centers&#39;][i], values_dict[&#39;cnts&#39;][i], where=&#39;mid&#39;, color=&#39;C0&#39;)
+    plt.fill_between(values_dict[&#39;bins_centers&#39;][i],
+                     values_dict[&#39;cnts&#39;][i] - np.sqrt(values_dict[&#39;cnts&#39;][i]),
+                     values_dict[&#39;cnts&#39;][i] + np.sqrt(values_dict[&#39;cnts&#39;][i]),
+                     step=&#39;mid&#39;, color=&#39;C0&#39;, alpha=0.33, linewidth=0
+                     )
+    plt.plot(values_dict[&#39;bins_centers&#39;][i], values_dict[&#39;cnts_smoothed&#39;][i], color=&#39;C1&#39;)
+    plt.axvline(values_dict[&#39;mode&#39;][i], color=&#39;gray&#39;, linestyle=&#39;solid&#39;, label=&#39;Mode&#39;)
+    plt.axvline(values_dict[&#39;median&#39;][i], color=&#39;gray&#39;, linestyle=&#39;dashed&#39;, label=&#39;Median&#39;)
+    plt.axvline(values_dict[&#39;mean&#39;][i], color=&#39;gray&#39;, linestyle=&#39;dotted&#39;, label=&#39;Mean&#39;)
+    plt.xlim(min(values_dict[&#39;bins_centers&#39;][i]), max(values_dict[&#39;bins_centers&#39;][i]))
+    legend = plt.legend(loc=1, bbox_to_anchor=(0.99, 0.99), frameon=True, shadow=False, edgecolor=&#39;black&#39;,
+                        fancybox=False)
+    legend.get_frame().set_linewidth(0.75)
+    plt.ylabel(&#39;Entries&#39;)
+    if self.give_rate:
+        plt.xlabel(&#39;Count Rate [s$^{-1}$]&#39;)
+    else:
+        if self.t_int == 1:
+            plt.xlabel(&#39;Counts Per 1 Second&#39;)
+        else:
+            plt.xlabel(&#39;Counts Per {} Seconds&#39;.format(self.t_int))
+
+    plt.tight_layout()
+    if self.show_plots:
+        plt.show()
+    else:
+        plt.close()</code></pre>
+</details>
+</dd>
+<dt id="pmt_analysis.plotting.scaler.PlottingScaler.plot_dists_in_partitions"><code class="name flex">
+<span>def <span class="ident">plot_dists_in_partitions</span></span>(<span>self, values_dict: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot count (rate) distributions in all partitions.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>values_dict</code></strong></dt>
+<dd>Dictionary with characteristic values in the partitions as obtained with
+<code><a title="pmt_analysis.analysis.scaler.Scaler.get_values" href="../analysis/scaler.html#pmt_analysis.analysis.scaler.Scaler.get_values">Scaler.get_values()</a></code> method.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_dists_in_partitions(self, values_dict: dict):
+    &#34;&#34;&#34;Plot count (rate) distributions in all partitions.
+
+    Args:
+        values_dict: Dictionary with characteristic values in the partitions as obtained with
+            `pmt_analysis.analysis.scaler.Scaler.get_values` method.
+    &#34;&#34;&#34;
+    if (type(self.partition_t) in [int]) or (self.partition_t is None):
+        rng = 1
+    else:
+        rng = self.partition_t.shape[0]
+    for i in range(rng):
+        if self.show_plots:
+            print(&#39;Plot partition {} ({:.0f} - {:.0f})&#39;.format(i, values_dict[&#39;t_start&#39;][i],
+                                                               values_dict[&#39;t_end&#39;][i]))
+        self.plot_dist_in_partition(values_dict, i=i)</code></pre>
+</details>
+</dd>
 <dt id="pmt_analysis.plotting.scaler.PlottingScaler.plot_rate_evolution_hist2d"><code class="name flex">
-<span>def <span class="ident">plot_rate_evolution_hist2d</span></span>(<span>self, channel: int, t_step_s: int, time_format: str = 't_datetime_utc', give_rate: bool = False)</span>
+<span>def <span class="ident">plot_rate_evolution_hist2d</span></span>(<span>self, channel: int, t_step_s: int, time_format: str = 't_datetime_utc', values_dict: Optional[dict] = None, m_value: Optional[str] = 'median')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot 2d histogram of time-dependent counts / count rates.</p>
@@ -548,16 +837,20 @@ opposing PMT voltage values for light emission tests.</dd>
 <code>t_h_rel</code> time difference in hours since start of data period;
 <code>t_d_rel</code> time difference in days since start of data period;
 <code>t_datetime_utc</code> UTC datetime;
-<code>t_datetime_zh</code> datetime for Zurich time zone, i.e. CE(S)T;</dd>
-<dt><strong><code>give_rate</code></strong></dt>
-<dd>If true, use count rates on vertical axis, otherwise use absolute count values.</dd>
+<code>t_datetime_zh</code> datetime for Zurich time zone, i.e. CE(S)T</dd>
+<dt><strong><code>values_dict</code></strong></dt>
+<dd>Dictionary with characteristic values in the partitions as obtained with
+<code><a title="pmt_analysis.analysis.scaler.Scaler.get_values" href="../analysis/scaler.html#pmt_analysis.analysis.scaler.Scaler.get_values">Scaler.get_values()</a></code> method.</dd>
+<dt><strong><code>m_value</code></strong></dt>
+<dd>Key of values from <code>values_dict</code> to use as characteristic values in partitions.
+options: <code>'median'</code>, <code>'mean'</code>, <code>'mode'</code>.</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def plot_rate_evolution_hist2d(self, channel: int, t_step_s: int, time_format: str = &#39;t_datetime_utc&#39;,
-                               give_rate: bool = False):
+                               values_dict: Optional[dict] = None, m_value: Optional[str] = &#39;median&#39;):
     &#34;&#34;&#34;Plot 2d histogram of time-dependent counts / count rates.
 
     Args:
@@ -568,25 +861,46 @@ opposing PMT voltage values for light emission tests.</dd>
             `t_h_rel` time difference in hours since start of data period;
             `t_d_rel` time difference in days since start of data period;
             `t_datetime_utc` UTC datetime;
-            `t_datetime_zh` datetime for Zurich time zone, i.e. CE(S)T;
-        give_rate: If true, use count rates on vertical axis, otherwise use absolute count values.
+            `t_datetime_zh` datetime for Zurich time zone, i.e. CE(S)T
+        values_dict: Dictionary with characteristic values in the partitions as obtained with
+            `pmt_analysis.analysis.scaler.Scaler.get_values` method.
+        m_value: Key of values from `values_dict` to use as characteristic values in partitions.
+            options: `&#39;median&#39;`, `&#39;mean&#39;`, `&#39;mode&#39;`.
     &#34;&#34;&#34;
+    if values_dict is not None:
+        m_value = m_value.lower()
+        if m_value not in [&#39;median&#39;, &#39;mean&#39;, &#39;mode&#39;]:
+            raise ValueError(&#39;Value {} for `m_value` not supported. Supported options: `median`, `mean`, `mode`&#39;)
+        m_vals = np.array(values_dict[m_value])
+        m_t_start = np.array(values_dict[&#39;t_start&#39;])
+        m_t_end = np.array(values_dict[&#39;t_end&#39;])
+        if np.unique([len(el) for el in [m_vals, m_t_start, m_t_end]]).shape[0] != 1:
+            raise ValueError(&#39;Length for {}, t_start, and t_end not equal.&#39;.format(m_value))
     # Convert time stamps to selected format
     if time_format == &#39;t_s_rel&#39;:
         t_values = self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()
         if self.partition_t is not None:
             partition_t = self.partition_t - self.data[&#39;timestamp&#39;].min()
         t_step = t_step_s
+        if values_dict is not None:
+            m_t_start = m_t_start - np.min(m_t_start)
+            m_t_end = m_t_end - np.min(m_t_end)
     elif time_format == &#39;t_h_rel&#39;:
         t_values = (self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()) / 3600
         if self.partition_t is not None:
             partition_t = (self.partition_t - self.data[&#39;timestamp&#39;].min()) / 3600
         t_step = t_step_s / 3600
+        if values_dict is not None:
+            m_t_start = (m_t_start - np.min(m_t_start)) / 3600
+            m_t_end = (m_t_end - np.min(m_t_end)) / 3600
     elif time_format == &#39;t_d_rel&#39;:
         t_values = (self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
         if self.partition_t is not None:
             partition_t = (self.partition_t - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
         t_step = t_step_s / (24 * 3600)
+        if values_dict is not None:
+            m_t_start = (m_t_start - np.min(m_t_start)) / (24 * 3600)
+            m_t_end = (m_t_end - np.min(m_t_end)) / (24 * 3600)
     elif time_format == &#39;t_datetime_utc&#39;:
         t_values = pd.to_datetime(self.data[&#39;timestamp&#39;], unit=&#39;s&#39;, utc=True)
         t_values = t_values.map(lambda x: x.tz_localize(None))  # remove timezone holding local time representations
@@ -594,6 +908,11 @@ opposing PMT voltage values for light emission tests.</dd>
             partition_t = pd.to_datetime(self.partition_t, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
             partition_t = partition_t.map(lambda x: x.tz_localize(None))
         t_step = pd.Timedelta(t_step_s, &#39;s&#39;)
+        if values_dict is not None:
+            m_t_start = pd.to_datetime(m_t_start, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
+            m_t_start = m_t_start.map(lambda x: x.tz_localize(None))
+            m_t_end = pd.to_datetime(m_t_end, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
+            m_t_end = m_t_end.map(lambda x: x.tz_localize(None))
     elif time_format == &#39;t_datetime_zh&#39;:
         t_values = pd.to_datetime(self.data[&#39;timestamp&#39;], unit=&#39;s&#39;, utc=True)
         t_values = t_values.map(lambda x: x.tz_convert(&#39;Europe/Zurich&#39;))
@@ -603,6 +922,13 @@ opposing PMT voltage values for light emission tests.</dd>
             partition_t = partition_t.map(lambda x: x.tz_convert(&#39;Europe/Zurich&#39;))
             partition_t = partition_t.map(lambda x: x.tz_localize(None))
         t_step = pd.Timedelta(t_step_s, &#39;s&#39;)
+        if values_dict is not None:
+            m_t_start = pd.to_datetime(m_t_start, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
+            m_t_start = m_t_start.map(lambda x: x.tz_convert(&#39;Europe/Zurich&#39;))
+            m_t_start = m_t_start.map(lambda x: x.tz_localize(None))
+            m_t_end = pd.to_datetime(m_t_end, unit=&#39;s&#39;, utc=True, errors=&#39;coerce&#39;)
+            m_t_end = m_t_end.map(lambda x: x.tz_convert(&#39;Europe/Zurich&#39;))
+            m_t_end = m_t_end.map(lambda x: x.tz_localize(None))
     else:
         raise ValueError(&#39;Value {} for time_format unsupported.&#39;
                          &#39;Supported values: [t_s_rel, t_h_rel, t_d_rel, t_datetime_utc, &#39;
@@ -616,7 +942,7 @@ opposing PMT voltage values for light emission tests.</dd>
         bins_x = pd.to_datetime(bins_x)
 
     # Define count / count rate axis bins
-    if give_rate:
+    if self.give_rate:
         bins_y_05p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 5)
         bins_y_95p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 95)
     else:
@@ -624,14 +950,14 @@ opposing PMT voltage values for light emission tests.</dd>
         bins_y_95p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 95)
     bins_y_min = bins_y_05p - (bins_y_95p - bins_y_05p)
     bins_y_max = bins_y_95p + 1.2*(bins_y_95p - bins_y_05p)
-    if give_rate:
+    if self.give_rate:
         bins_y = np.arange(bins_y_min, bins_y_max, 1)
     else:
         bins_y = np.arange(bins_y_min, bins_y_max, self.t_int)
 
     # Generate plot
     fig, ax = plt.subplots()
-    if give_rate:
+    if self.give_rate:
         plt.hist2d(t_values, self.data[&#39;ch{}_freq&#39;.format(channel)],
                    bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
     else:
@@ -663,6 +989,11 @@ opposing PMT voltage values for light emission tests.</dd>
                         &#39;{}{}&#39;.format(self.partition_v[i], partition_v_unit),
                         **annotation_style)
 
+    # Give characteristic value partitions
+    if values_dict is not None:
+        for i, m_val in enumerate(m_vals):
+            plt.plot([m_t_start[i], m_t_end[i]], 2*[m_val], c=&#39;k&#39;, linewidth=1, linestyle=&#39;solid&#39;)
+
     # Adjust axes and labels
     if time_format == &#39;t_s_rel&#39;:
         plt.xlabel(&#39;Time [s]&#39;)
@@ -678,7 +1009,7 @@ opposing PMT voltage values for light emission tests.</dd>
         plt.xlabel(&#39;Date&#39;)
         fig.autofmt_xdate(bottom=0.2, rotation=30, ha=&#39;right&#39;)
         ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter(&#39;%Y-%m-%d %H:%M&#39;))
-    if give_rate:
+    if self.give_rate:
         plt.ylabel(&#39;Count Rate [s$^{-1}$]&#39;)
     else:
         if self.t_int == 1:
@@ -691,12 +1022,14 @@ opposing PMT voltage values for light emission tests.</dd>
     # Output / save
     plt.tight_layout()
     filename = &#39;scaler_channel_{}_&#39;.format(channel)
-    if give_rate:
+    if self.give_rate:
         filename += &#39;rate_vs_&#39;
     else:
         filename += &#39;counts_vs_&#39;
     filename += time_format
     filename += &#39;_{}-{}&#39;.format(self.data[&#39;timestamp&#39;].min(), self.data[&#39;timestamp&#39;].max())
+    if m_value is not None:
+        filename += &#39;_&#39;+m_value
     if self.save_plots:
         plt.savefig(os.path.join(self.save_dir, filename + &#39;.png&#39;))
         plt.savefig(os.path.join(self.save_dir, filename + &#39;.pdf&#39;))
@@ -727,6 +1060,8 @@ opposing PMT voltage values for light emission tests.</dd>
 <li>
 <h4><code><a title="pmt_analysis.plotting.scaler.PlottingScaler" href="#pmt_analysis.plotting.scaler.PlottingScaler">PlottingScaler</a></code></h4>
 <ul class="">
+<li><code><a title="pmt_analysis.plotting.scaler.PlottingScaler.plot_dist_in_partition" href="#pmt_analysis.plotting.scaler.PlottingScaler.plot_dist_in_partition">plot_dist_in_partition</a></code></li>
+<li><code><a title="pmt_analysis.plotting.scaler.PlottingScaler.plot_dists_in_partitions" href="#pmt_analysis.plotting.scaler.PlottingScaler.plot_dists_in_partitions">plot_dists_in_partitions</a></code></li>
 <li><code><a title="pmt_analysis.plotting.scaler.PlottingScaler.plot_rate_evolution_hist2d" href="#pmt_analysis.plotting.scaler.PlottingScaler.plot_rate_evolution_hist2d">plot_rate_evolution_hist2d</a></code></li>
 </ul>
 </li>
