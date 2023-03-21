@@ -109,24 +109,24 @@ class PlottingScaler:
                 partition_t = self.partition_t - self.data['timestamp'].min()
             t_step = t_step_s
             if values_dict is not None:
-                m_t_start = m_t_start - np.min(m_t_start)
-                m_t_end = m_t_end - np.min(m_t_end)
+                m_t_start = m_t_start - self.data['timestamp'].min()
+                m_t_end = m_t_end - self.data['timestamp'].min()
         elif time_format == 't_h_rel':
             t_values = (self.data['timestamp'] - self.data['timestamp'].min()) / 3600
             if self.partition_t is not None:
                 partition_t = (self.partition_t - self.data['timestamp'].min()) / 3600
             t_step = t_step_s / 3600
             if values_dict is not None:
-                m_t_start = (m_t_start - np.min(m_t_start)) / 3600
-                m_t_end = (m_t_end - np.min(m_t_end)) / 3600
+                m_t_start = (m_t_start - self.data['timestamp'].min()) / 3600
+                m_t_end = (m_t_end - self.data['timestamp'].min()) / 3600
         elif time_format == 't_d_rel':
             t_values = (self.data['timestamp'] - self.data['timestamp'].min()) / (24 * 3600)
             if self.partition_t is not None:
                 partition_t = (self.partition_t - self.data['timestamp'].min()) / (24 * 3600)
             t_step = t_step_s / (24 * 3600)
             if values_dict is not None:
-                m_t_start = (m_t_start - np.min(m_t_start)) / (24 * 3600)
-                m_t_end = (m_t_end - np.min(m_t_end)) / (24 * 3600)
+                m_t_start = (m_t_start - self.data['timestamp'].min()) / (24 * 3600)
+                m_t_end = (m_t_end - self.data['timestamp'].min()) / (24 * 3600)
         elif time_format == 't_datetime_utc':
             t_values = pd.to_datetime(self.data['timestamp'], unit='s', utc=True)
             t_values = t_values.map(lambda x: x.tz_localize(None))  # remove timezone holding local time representations

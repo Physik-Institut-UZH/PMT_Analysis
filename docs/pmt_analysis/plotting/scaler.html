@@ -137,24 +137,24 @@ class PlottingScaler:
                 partition_t = self.partition_t - self.data[&#39;timestamp&#39;].min()
             t_step = t_step_s
             if values_dict is not None:
-                m_t_start = m_t_start - np.min(m_t_start)
-                m_t_end = m_t_end - np.min(m_t_end)
+                m_t_start = m_t_start - self.data[&#39;timestamp&#39;].min()
+                m_t_end = m_t_end - self.data[&#39;timestamp&#39;].min()
         elif time_format == &#39;t_h_rel&#39;:
             t_values = (self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()) / 3600
             if self.partition_t is not None:
                 partition_t = (self.partition_t - self.data[&#39;timestamp&#39;].min()) / 3600
             t_step = t_step_s / 3600
             if values_dict is not None:
-                m_t_start = (m_t_start - np.min(m_t_start)) / 3600
-                m_t_end = (m_t_end - np.min(m_t_end)) / 3600
+                m_t_start = (m_t_start - self.data[&#39;timestamp&#39;].min()) / 3600
+                m_t_end = (m_t_end - self.data[&#39;timestamp&#39;].min()) / 3600
         elif time_format == &#39;t_d_rel&#39;:
             t_values = (self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
             if self.partition_t is not None:
                 partition_t = (self.partition_t - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
             t_step = t_step_s / (24 * 3600)
             if values_dict is not None:
-                m_t_start = (m_t_start - np.min(m_t_start)) / (24 * 3600)
-                m_t_end = (m_t_end - np.min(m_t_end)) / (24 * 3600)
+                m_t_start = (m_t_start - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
+                m_t_end = (m_t_end - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
         elif time_format == &#39;t_datetime_utc&#39;:
             t_values = pd.to_datetime(self.data[&#39;timestamp&#39;], unit=&#39;s&#39;, utc=True)
             t_values = t_values.map(lambda x: x.tz_localize(None))  # remove timezone holding local time representations
@@ -521,24 +521,24 @@ opposing PMT voltage values for light emission tests.</dd>
                 partition_t = self.partition_t - self.data[&#39;timestamp&#39;].min()
             t_step = t_step_s
             if values_dict is not None:
-                m_t_start = m_t_start - np.min(m_t_start)
-                m_t_end = m_t_end - np.min(m_t_end)
+                m_t_start = m_t_start - self.data[&#39;timestamp&#39;].min()
+                m_t_end = m_t_end - self.data[&#39;timestamp&#39;].min()
         elif time_format == &#39;t_h_rel&#39;:
             t_values = (self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()) / 3600
             if self.partition_t is not None:
                 partition_t = (self.partition_t - self.data[&#39;timestamp&#39;].min()) / 3600
             t_step = t_step_s / 3600
             if values_dict is not None:
-                m_t_start = (m_t_start - np.min(m_t_start)) / 3600
-                m_t_end = (m_t_end - np.min(m_t_end)) / 3600
+                m_t_start = (m_t_start - self.data[&#39;timestamp&#39;].min()) / 3600
+                m_t_end = (m_t_end - self.data[&#39;timestamp&#39;].min()) / 3600
         elif time_format == &#39;t_d_rel&#39;:
             t_values = (self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
             if self.partition_t is not None:
                 partition_t = (self.partition_t - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
             t_step = t_step_s / (24 * 3600)
             if values_dict is not None:
-                m_t_start = (m_t_start - np.min(m_t_start)) / (24 * 3600)
-                m_t_end = (m_t_end - np.min(m_t_end)) / (24 * 3600)
+                m_t_start = (m_t_start - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
+                m_t_end = (m_t_end - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
         elif time_format == &#39;t_datetime_utc&#39;:
             t_values = pd.to_datetime(self.data[&#39;timestamp&#39;], unit=&#39;s&#39;, utc=True)
             t_values = t_values.map(lambda x: x.tz_localize(None))  # remove timezone holding local time representations
@@ -883,24 +883,24 @@ options: <code>'median'</code>, <code>'mean'</code>, <code>'mode'</code>.</dd>
             partition_t = self.partition_t - self.data[&#39;timestamp&#39;].min()
         t_step = t_step_s
         if values_dict is not None:
-            m_t_start = m_t_start - np.min(m_t_start)
-            m_t_end = m_t_end - np.min(m_t_end)
+            m_t_start = m_t_start - self.data[&#39;timestamp&#39;].min()
+            m_t_end = m_t_end - self.data[&#39;timestamp&#39;].min()
     elif time_format == &#39;t_h_rel&#39;:
         t_values = (self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()) / 3600
         if self.partition_t is not None:
             partition_t = (self.partition_t - self.data[&#39;timestamp&#39;].min()) / 3600
         t_step = t_step_s / 3600
         if values_dict is not None:
-            m_t_start = (m_t_start - np.min(m_t_start)) / 3600
-            m_t_end = (m_t_end - np.min(m_t_end)) / 3600
+            m_t_start = (m_t_start - self.data[&#39;timestamp&#39;].min()) / 3600
+            m_t_end = (m_t_end - self.data[&#39;timestamp&#39;].min()) / 3600
     elif time_format == &#39;t_d_rel&#39;:
         t_values = (self.data[&#39;timestamp&#39;] - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
         if self.partition_t is not None:
             partition_t = (self.partition_t - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
         t_step = t_step_s / (24 * 3600)
         if values_dict is not None:
-            m_t_start = (m_t_start - np.min(m_t_start)) / (24 * 3600)
-            m_t_end = (m_t_end - np.min(m_t_end)) / (24 * 3600)
+            m_t_start = (m_t_start - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
+            m_t_end = (m_t_end - self.data[&#39;timestamp&#39;].min()) / (24 * 3600)
     elif time_format == &#39;t_datetime_utc&#39;:
         t_values = pd.to_datetime(self.data[&#39;timestamp&#39;], unit=&#39;s&#39;, utc=True)
         t_values = t_values.map(lambda x: x.tz_localize(None))  # remove timezone holding local time representations
