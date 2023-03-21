@@ -76,8 +76,9 @@ class PlottingScaler:
             self.partition_v_unit = partition_v_unit
 
     def plot_rate_evolution_hist2d(self, channel: int, t_step_s: int, time_format: str = 't_datetime_utc',
-                                   values_dict: Optional[dict] = None, m_value: Optional[str] = 'median'):
-        """Plot 2d histogram of time-dependent counts / count rates.
+                                   values_dict: Optional[dict] = None, m_value: Optional[str] = 'median',
+                                   plot_type: str = 'hist2d'):
+        """Plot of time-dependent counts / count rates.
 
         Args:
             channel: Scaler channel number.
@@ -92,6 +93,7 @@ class PlottingScaler:
                 `pmt_analysis.analysis.scaler.Scaler.get_values` method.
             m_value: Key of values from `values_dict` to use as characteristic values in partitions.
                 options: `'median'`, `'mean'`, `'mode'`.
+            plot_type: 'hist2d' for 2d histogram or 'scatter' for scatter plot.
         """
         if values_dict is not None:
             m_value = m_value.lower()
@@ -160,35 +162,49 @@ class PlottingScaler:
                              'Supported values: [t_s_rel, t_h_rel, t_d_rel, t_datetime_utc, '
                              't_datetime_zh]'.format(time_format))
 
-        # Define time axis bins
-        bins_x = np.arange(t_values.min(),
-                           t_values.max() + t_step,
-                           t_step)
-        if time_format in ['t_datetime_utc', 't_datetime_zh']:
-            bins_x = pd.to_datetime(bins_x)
+        if plot_type == 'hist2d':
+            # Define time axis bins
+            bins_x = np.arange(t_values.min(),
+                               t_values.max() + t_step,
+                               t_step)
+            if time_format in ['t_datetime_utc', 't_datetime_zh']:
+                bins_x = pd.to_datetime(bins_x)
 
-        # Define count / count rate axis bins
-        if self.give_rate:
-            bins_y_05p = np.percentile(self.data['ch{}_freq'.format(channel)], 5)
-            bins_y_95p = np.percentile(self.data['ch{}_freq'.format(channel)], 95)
-        else:
-            bins_y_05p = np.percentile(self.data['ch{}_cnts'.format(channel)], 5)
-            bins_y_95p = np.percentile(self.data['ch{}_cnts'.format(channel)], 95)
-        bins_y_min = bins_y_05p - (bins_y_95p - bins_y_05p)
-        bins_y_max = bins_y_95p + 1.2*(bins_y_95p - bins_y_05p)
-        if self.give_rate:
-            bins_y = np.arange(bins_y_min, bins_y_max, 1)
-        else:
-            bins_y = np.arange(bins_y_min, bins_y_max, self.t_int)
+            # Define count / count rate axis bins
+            if self.give_rate:
+                bins_y_05p = np.percentile(self.data['ch{}_freq'.format(channel)], 5)
+                bins_y_95p = np.percentile(self.data['ch{}_freq'.format(channel)], 95)
+            else:
+                bins_y_05p = np.percentile(self.data['ch{}_cnts'.format(channel)], 5)
+                bins_y_95p = np.percentile(self.data['ch{}_cnts'.format(channel)], 95)
+            bins_y_min = bins_y_05p - (bins_y_95p - bins_y_05p)
+            bins_y_max = bins_y_95p + 1.2*(bins_y_95p - bins_y_05p)
+            if self.give_rate:
+                bins_y = np.arange(bins_y_min, bins_y_max, 1)
+            else:
+                bins_y = np.arange(bins_y_min, bins_y_max, self.t_int)
 
-        # Generate plot
-        fig, ax = plt.subplots()
-        if self.give_rate:
-            plt.hist2d(t_values, self.data['ch{}_freq'.format(channel)],
-                       bins=[bins_x, bins_y], cmap='Blues')
+            # Generate plot
+            fig, ax = plt.subplots()
+            if self.give_rate:
+                plt.hist2d(t_values, self.data['ch{}_freq'.format(channel)],
+                           bins=[bins_x, bins_y], cmap='Blues')
+            else:
+                plt.hist2d(t_values, self.data['ch{}_cnts'.format(channel)],
+                           bins=[bins_x, bins_y], cmap='Blues')
+        elif plot_type == 'scatter':
+            # Generate plot
+            fig, ax = plt.subplots()
+            bins_x = np.array([min(t_values), max(t_values)])
+            if self.give_rate:
+                y_values = self.data['ch{}_freq'.format(channel)]
+            else:
+                y_values = self.data['ch{}_cnts'.format(channel)]
+            bins_y = np.array([min(y_values) - 0.05*(max(y_values)-min(y_values)),
+                               max(y_values) + 0.05*(max(y_values)-min(y_values))])
+            plt.scatter(t_values, y_values, s=1, alpha = 0.5)
         else:
-            plt.hist2d(t_values, self.data['ch{}_cnts'.format(channel)],
-                       bins=[bins_x, bins_y], cmap='Blues')
+            raise ValueError('Plot type `{}` not supported, use `hist2d` or `scatter` instead.'.format(plot_type))
 
         # Mark partitions
         if self.partition_v is not None:
@@ -221,6 +237,10 @@ class PlottingScaler:
                 plt.plot([m_t_start[i], m_t_end[i]], 2*[m_val], c='k', linewidth=1, linestyle='solid')
 
         # Adjust axes and labels
+        if plot_type == 'scatter':
+            plt.xlim(bins_x[0], bins_x[1])
+            plt.ylim(bins_y[0], bins_y[1])
+
         if time_format == 't_s_rel':
             plt.xlabel('Time [s]')
         elif time_format == 't_h_rel':
@@ -242,8 +262,10 @@ class PlottingScaler:
                 plt.ylabel('Counts Per 1 Second')
             else:
                 plt.ylabel('Counts Per {} Seconds'.format(self.t_int))
-        cbar = plt.colorbar()
-        cbar.set_label('Entries')
+
+        if plot_type == 'hist2d':
+            cbar = plt.colorbar()
+            cbar.set_label('Entries')
 
         # Output / save
         plt.tight_layout()
@@ -253,6 +275,7 @@ class PlottingScaler:
         else:
             filename += 'counts_vs_'
         filename += time_format
+        filename += '_'+plot_type
         filename += '_{}-{}'.format(self.data['timestamp'].min(), self.data['timestamp'].max())
         if m_value is not None:
             filename += '_'+m_value

@@ -104,8 +104,9 @@ class PlottingScaler:
             self.partition_v_unit = partition_v_unit
 
     def plot_rate_evolution_hist2d(self, channel: int, t_step_s: int, time_format: str = &#39;t_datetime_utc&#39;,
-                                   values_dict: Optional[dict] = None, m_value: Optional[str] = &#39;median&#39;):
-        &#34;&#34;&#34;Plot 2d histogram of time-dependent counts / count rates.
+                                   values_dict: Optional[dict] = None, m_value: Optional[str] = &#39;median&#39;,
+                                   plot_type: str = &#39;hist2d&#39;):
+        &#34;&#34;&#34;Plot of time-dependent counts / count rates.
 
         Args:
             channel: Scaler channel number.
@@ -120,6 +121,7 @@ class PlottingScaler:
                 `pmt_analysis.analysis.scaler.Scaler.get_values` method.
             m_value: Key of values from `values_dict` to use as characteristic values in partitions.
                 options: `&#39;median&#39;`, `&#39;mean&#39;`, `&#39;mode&#39;`.
+            plot_type: &#39;hist2d&#39; for 2d histogram or &#39;scatter&#39; for scatter plot.
         &#34;&#34;&#34;
         if values_dict is not None:
             m_value = m_value.lower()
@@ -188,35 +190,49 @@ class PlottingScaler:
                              &#39;Supported values: [t_s_rel, t_h_rel, t_d_rel, t_datetime_utc, &#39;
                              &#39;t_datetime_zh]&#39;.format(time_format))
 
-        # Define time axis bins
-        bins_x = np.arange(t_values.min(),
-                           t_values.max() + t_step,
-                           t_step)
-        if time_format in [&#39;t_datetime_utc&#39;, &#39;t_datetime_zh&#39;]:
-            bins_x = pd.to_datetime(bins_x)
+        if plot_type == &#39;hist2d&#39;:
+            # Define time axis bins
+            bins_x = np.arange(t_values.min(),
+                               t_values.max() + t_step,
+                               t_step)
+            if time_format in [&#39;t_datetime_utc&#39;, &#39;t_datetime_zh&#39;]:
+                bins_x = pd.to_datetime(bins_x)
 
-        # Define count / count rate axis bins
-        if self.give_rate:
-            bins_y_05p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 5)
-            bins_y_95p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 95)
-        else:
-            bins_y_05p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 5)
-            bins_y_95p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 95)
-        bins_y_min = bins_y_05p - (bins_y_95p - bins_y_05p)
-        bins_y_max = bins_y_95p + 1.2*(bins_y_95p - bins_y_05p)
-        if self.give_rate:
-            bins_y = np.arange(bins_y_min, bins_y_max, 1)
-        else:
-            bins_y = np.arange(bins_y_min, bins_y_max, self.t_int)
+            # Define count / count rate axis bins
+            if self.give_rate:
+                bins_y_05p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 5)
+                bins_y_95p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 95)
+            else:
+                bins_y_05p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 5)
+                bins_y_95p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 95)
+            bins_y_min = bins_y_05p - (bins_y_95p - bins_y_05p)
+            bins_y_max = bins_y_95p + 1.2*(bins_y_95p - bins_y_05p)
+            if self.give_rate:
+                bins_y = np.arange(bins_y_min, bins_y_max, 1)
+            else:
+                bins_y = np.arange(bins_y_min, bins_y_max, self.t_int)
 
-        # Generate plot
-        fig, ax = plt.subplots()
-        if self.give_rate:
-            plt.hist2d(t_values, self.data[&#39;ch{}_freq&#39;.format(channel)],
-                       bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
+            # Generate plot
+            fig, ax = plt.subplots()
+            if self.give_rate:
+                plt.hist2d(t_values, self.data[&#39;ch{}_freq&#39;.format(channel)],
+                           bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
+            else:
+                plt.hist2d(t_values, self.data[&#39;ch{}_cnts&#39;.format(channel)],
+                           bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
+        elif plot_type == &#39;scatter&#39;:
+            # Generate plot
+            fig, ax = plt.subplots()
+            bins_x = np.array([min(t_values), max(t_values)])
+            if self.give_rate:
+                y_values = self.data[&#39;ch{}_freq&#39;.format(channel)]
+            else:
+                y_values = self.data[&#39;ch{}_cnts&#39;.format(channel)]
+            bins_y = np.array([min(y_values) - 0.05*(max(y_values)-min(y_values)),
+                               max(y_values) + 0.05*(max(y_values)-min(y_values))])
+            plt.scatter(t_values, y_values, s=1, alpha = 0.5)
         else:
-            plt.hist2d(t_values, self.data[&#39;ch{}_cnts&#39;.format(channel)],
-                       bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
+            raise ValueError(&#39;Plot type `{}` not supported, use `hist2d` or `scatter` instead.&#39;.format(plot_type))
 
         # Mark partitions
         if self.partition_v is not None:
@@ -249,6 +265,10 @@ class PlottingScaler:
                 plt.plot([m_t_start[i], m_t_end[i]], 2*[m_val], c=&#39;k&#39;, linewidth=1, linestyle=&#39;solid&#39;)
 
         # Adjust axes and labels
+        if plot_type == &#39;scatter&#39;:
+            plt.xlim(bins_x[0], bins_x[1])
+            plt.ylim(bins_y[0], bins_y[1])
+
         if time_format == &#39;t_s_rel&#39;:
             plt.xlabel(&#39;Time [s]&#39;)
         elif time_format == &#39;t_h_rel&#39;:
@@ -270,8 +290,10 @@ class PlottingScaler:
                 plt.ylabel(&#39;Counts Per 1 Second&#39;)
             else:
                 plt.ylabel(&#39;Counts Per {} Seconds&#39;.format(self.t_int))
-        cbar = plt.colorbar()
-        cbar.set_label(&#39;Entries&#39;)
+
+        if plot_type == &#39;hist2d&#39;:
+            cbar = plt.colorbar()
+            cbar.set_label(&#39;Entries&#39;)
 
         # Output / save
         plt.tight_layout()
@@ -281,6 +303,7 @@ class PlottingScaler:
         else:
             filename += &#39;counts_vs_&#39;
         filename += time_format
+        filename += &#39;_&#39;+plot_type
         filename += &#39;_{}-{}&#39;.format(self.data[&#39;timestamp&#39;].min(), self.data[&#39;timestamp&#39;].max())
         if m_value is not None:
             filename += &#39;_&#39;+m_value
@@ -488,8 +511,9 @@ opposing PMT voltage values for light emission tests.</dd>
             self.partition_v_unit = partition_v_unit
 
     def plot_rate_evolution_hist2d(self, channel: int, t_step_s: int, time_format: str = &#39;t_datetime_utc&#39;,
-                                   values_dict: Optional[dict] = None, m_value: Optional[str] = &#39;median&#39;):
-        &#34;&#34;&#34;Plot 2d histogram of time-dependent counts / count rates.
+                                   values_dict: Optional[dict] = None, m_value: Optional[str] = &#39;median&#39;,
+                                   plot_type: str = &#39;hist2d&#39;):
+        &#34;&#34;&#34;Plot of time-dependent counts / count rates.
 
         Args:
             channel: Scaler channel number.
@@ -504,6 +528,7 @@ opposing PMT voltage values for light emission tests.</dd>
                 `pmt_analysis.analysis.scaler.Scaler.get_values` method.
             m_value: Key of values from `values_dict` to use as characteristic values in partitions.
                 options: `&#39;median&#39;`, `&#39;mean&#39;`, `&#39;mode&#39;`.
+            plot_type: &#39;hist2d&#39; for 2d histogram or &#39;scatter&#39; for scatter plot.
         &#34;&#34;&#34;
         if values_dict is not None:
             m_value = m_value.lower()
@@ -572,35 +597,49 @@ opposing PMT voltage values for light emission tests.</dd>
                              &#39;Supported values: [t_s_rel, t_h_rel, t_d_rel, t_datetime_utc, &#39;
                              &#39;t_datetime_zh]&#39;.format(time_format))
 
-        # Define time axis bins
-        bins_x = np.arange(t_values.min(),
-                           t_values.max() + t_step,
-                           t_step)
-        if time_format in [&#39;t_datetime_utc&#39;, &#39;t_datetime_zh&#39;]:
-            bins_x = pd.to_datetime(bins_x)
+        if plot_type == &#39;hist2d&#39;:
+            # Define time axis bins
+            bins_x = np.arange(t_values.min(),
+                               t_values.max() + t_step,
+                               t_step)
+            if time_format in [&#39;t_datetime_utc&#39;, &#39;t_datetime_zh&#39;]:
+                bins_x = pd.to_datetime(bins_x)
 
-        # Define count / count rate axis bins
-        if self.give_rate:
-            bins_y_05p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 5)
-            bins_y_95p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 95)
-        else:
-            bins_y_05p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 5)
-            bins_y_95p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 95)
-        bins_y_min = bins_y_05p - (bins_y_95p - bins_y_05p)
-        bins_y_max = bins_y_95p + 1.2*(bins_y_95p - bins_y_05p)
-        if self.give_rate:
-            bins_y = np.arange(bins_y_min, bins_y_max, 1)
-        else:
-            bins_y = np.arange(bins_y_min, bins_y_max, self.t_int)
+            # Define count / count rate axis bins
+            if self.give_rate:
+                bins_y_05p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 5)
+                bins_y_95p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 95)
+            else:
+                bins_y_05p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 5)
+                bins_y_95p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 95)
+            bins_y_min = bins_y_05p - (bins_y_95p - bins_y_05p)
+            bins_y_max = bins_y_95p + 1.2*(bins_y_95p - bins_y_05p)
+            if self.give_rate:
+                bins_y = np.arange(bins_y_min, bins_y_max, 1)
+            else:
+                bins_y = np.arange(bins_y_min, bins_y_max, self.t_int)
 
-        # Generate plot
-        fig, ax = plt.subplots()
-        if self.give_rate:
-            plt.hist2d(t_values, self.data[&#39;ch{}_freq&#39;.format(channel)],
-                       bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
+            # Generate plot
+            fig, ax = plt.subplots()
+            if self.give_rate:
+                plt.hist2d(t_values, self.data[&#39;ch{}_freq&#39;.format(channel)],
+                           bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
+            else:
+                plt.hist2d(t_values, self.data[&#39;ch{}_cnts&#39;.format(channel)],
+                           bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
+        elif plot_type == &#39;scatter&#39;:
+            # Generate plot
+            fig, ax = plt.subplots()
+            bins_x = np.array([min(t_values), max(t_values)])
+            if self.give_rate:
+                y_values = self.data[&#39;ch{}_freq&#39;.format(channel)]
+            else:
+                y_values = self.data[&#39;ch{}_cnts&#39;.format(channel)]
+            bins_y = np.array([min(y_values) - 0.05*(max(y_values)-min(y_values)),
+                               max(y_values) + 0.05*(max(y_values)-min(y_values))])
+            plt.scatter(t_values, y_values, s=1, alpha = 0.5)
         else:
-            plt.hist2d(t_values, self.data[&#39;ch{}_cnts&#39;.format(channel)],
-                       bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
+            raise ValueError(&#39;Plot type `{}` not supported, use `hist2d` or `scatter` instead.&#39;.format(plot_type))
 
         # Mark partitions
         if self.partition_v is not None:
@@ -633,6 +672,10 @@ opposing PMT voltage values for light emission tests.</dd>
                 plt.plot([m_t_start[i], m_t_end[i]], 2*[m_val], c=&#39;k&#39;, linewidth=1, linestyle=&#39;solid&#39;)
 
         # Adjust axes and labels
+        if plot_type == &#39;scatter&#39;:
+            plt.xlim(bins_x[0], bins_x[1])
+            plt.ylim(bins_y[0], bins_y[1])
+
         if time_format == &#39;t_s_rel&#39;:
             plt.xlabel(&#39;Time [s]&#39;)
         elif time_format == &#39;t_h_rel&#39;:
@@ -654,8 +697,10 @@ opposing PMT voltage values for light emission tests.</dd>
                 plt.ylabel(&#39;Counts Per 1 Second&#39;)
             else:
                 plt.ylabel(&#39;Counts Per {} Seconds&#39;.format(self.t_int))
-        cbar = plt.colorbar()
-        cbar.set_label(&#39;Entries&#39;)
+
+        if plot_type == &#39;hist2d&#39;:
+            cbar = plt.colorbar()
+            cbar.set_label(&#39;Entries&#39;)
 
         # Output / save
         plt.tight_layout()
@@ -665,6 +710,7 @@ opposing PMT voltage values for light emission tests.</dd>
         else:
             filename += &#39;counts_vs_&#39;
         filename += time_format
+        filename += &#39;_&#39;+plot_type
         filename += &#39;_{}-{}&#39;.format(self.data[&#39;timestamp&#39;].min(), self.data[&#39;timestamp&#39;].max())
         if m_value is not None:
             filename += &#39;_&#39;+m_value
@@ -821,10 +867,10 @@ opposing PMT voltage values for light emission tests.</dd>
 </details>
 </dd>
 <dt id="pmt_analysis.plotting.scaler.PlottingScaler.plot_rate_evolution_hist2d"><code class="name flex">
-<span>def <span class="ident">plot_rate_evolution_hist2d</span></span>(<span>self, channel: int, t_step_s: int, time_format: str = 't_datetime_utc', values_dict: Optional[dict] = None, m_value: Optional[str] = 'median')</span>
+<span>def <span class="ident">plot_rate_evolution_hist2d</span></span>(<span>self, channel: int, t_step_s: int, time_format: str = 't_datetime_utc', values_dict: Optional[dict] = None, m_value: Optional[str] = 'median', plot_type: str = 'hist2d')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Plot 2d histogram of time-dependent counts / count rates.</p>
+<div class="desc"><p>Plot of time-dependent counts / count rates.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>channel</code></strong></dt>
@@ -844,14 +890,17 @@ opposing PMT voltage values for light emission tests.</dd>
 <dt><strong><code>m_value</code></strong></dt>
 <dd>Key of values from <code>values_dict</code> to use as characteristic values in partitions.
 options: <code>'median'</code>, <code>'mean'</code>, <code>'mode'</code>.</dd>
+<dt><strong><code>plot_type</code></strong></dt>
+<dd>'hist2d' for 2d histogram or 'scatter' for scatter plot.</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def plot_rate_evolution_hist2d(self, channel: int, t_step_s: int, time_format: str = &#39;t_datetime_utc&#39;,
-                               values_dict: Optional[dict] = None, m_value: Optional[str] = &#39;median&#39;):
-    &#34;&#34;&#34;Plot 2d histogram of time-dependent counts / count rates.
+                               values_dict: Optional[dict] = None, m_value: Optional[str] = &#39;median&#39;,
+                               plot_type: str = &#39;hist2d&#39;):
+    &#34;&#34;&#34;Plot of time-dependent counts / count rates.
 
     Args:
         channel: Scaler channel number.
@@ -866,6 +915,7 @@ options: <code>'median'</code>, <code>'mean'</code>, <code>'mode'</code>.</dd>
             `pmt_analysis.analysis.scaler.Scaler.get_values` method.
         m_value: Key of values from `values_dict` to use as characteristic values in partitions.
             options: `&#39;median&#39;`, `&#39;mean&#39;`, `&#39;mode&#39;`.
+        plot_type: &#39;hist2d&#39; for 2d histogram or &#39;scatter&#39; for scatter plot.
     &#34;&#34;&#34;
     if values_dict is not None:
         m_value = m_value.lower()
@@ -934,35 +984,49 @@ options: <code>'median'</code>, <code>'mean'</code>, <code>'mode'</code>.</dd>
                          &#39;Supported values: [t_s_rel, t_h_rel, t_d_rel, t_datetime_utc, &#39;
                          &#39;t_datetime_zh]&#39;.format(time_format))
 
-    # Define time axis bins
-    bins_x = np.arange(t_values.min(),
-                       t_values.max() + t_step,
-                       t_step)
-    if time_format in [&#39;t_datetime_utc&#39;, &#39;t_datetime_zh&#39;]:
-        bins_x = pd.to_datetime(bins_x)
+    if plot_type == &#39;hist2d&#39;:
+        # Define time axis bins
+        bins_x = np.arange(t_values.min(),
+                           t_values.max() + t_step,
+                           t_step)
+        if time_format in [&#39;t_datetime_utc&#39;, &#39;t_datetime_zh&#39;]:
+            bins_x = pd.to_datetime(bins_x)
 
-    # Define count / count rate axis bins
-    if self.give_rate:
-        bins_y_05p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 5)
-        bins_y_95p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 95)
-    else:
-        bins_y_05p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 5)
-        bins_y_95p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 95)
-    bins_y_min = bins_y_05p - (bins_y_95p - bins_y_05p)
-    bins_y_max = bins_y_95p + 1.2*(bins_y_95p - bins_y_05p)
-    if self.give_rate:
-        bins_y = np.arange(bins_y_min, bins_y_max, 1)
-    else:
-        bins_y = np.arange(bins_y_min, bins_y_max, self.t_int)
+        # Define count / count rate axis bins
+        if self.give_rate:
+            bins_y_05p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 5)
+            bins_y_95p = np.percentile(self.data[&#39;ch{}_freq&#39;.format(channel)], 95)
+        else:
+            bins_y_05p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 5)
+            bins_y_95p = np.percentile(self.data[&#39;ch{}_cnts&#39;.format(channel)], 95)
+        bins_y_min = bins_y_05p - (bins_y_95p - bins_y_05p)
+        bins_y_max = bins_y_95p + 1.2*(bins_y_95p - bins_y_05p)
+        if self.give_rate:
+            bins_y = np.arange(bins_y_min, bins_y_max, 1)
+        else:
+            bins_y = np.arange(bins_y_min, bins_y_max, self.t_int)
 
-    # Generate plot
-    fig, ax = plt.subplots()
-    if self.give_rate:
-        plt.hist2d(t_values, self.data[&#39;ch{}_freq&#39;.format(channel)],
-                   bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
+        # Generate plot
+        fig, ax = plt.subplots()
+        if self.give_rate:
+            plt.hist2d(t_values, self.data[&#39;ch{}_freq&#39;.format(channel)],
+                       bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
+        else:
+            plt.hist2d(t_values, self.data[&#39;ch{}_cnts&#39;.format(channel)],
+                       bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
+    elif plot_type == &#39;scatter&#39;:
+        # Generate plot
+        fig, ax = plt.subplots()
+        bins_x = np.array([min(t_values), max(t_values)])
+        if self.give_rate:
+            y_values = self.data[&#39;ch{}_freq&#39;.format(channel)]
+        else:
+            y_values = self.data[&#39;ch{}_cnts&#39;.format(channel)]
+        bins_y = np.array([min(y_values) - 0.05*(max(y_values)-min(y_values)),
+                           max(y_values) + 0.05*(max(y_values)-min(y_values))])
+        plt.scatter(t_values, y_values, s=1, alpha = 0.5)
     else:
-        plt.hist2d(t_values, self.data[&#39;ch{}_cnts&#39;.format(channel)],
-                   bins=[bins_x, bins_y], cmap=&#39;Blues&#39;)
+        raise ValueError(&#39;Plot type `{}` not supported, use `hist2d` or `scatter` instead.&#39;.format(plot_type))
 
     # Mark partitions
     if self.partition_v is not None:
@@ -995,6 +1059,10 @@ options: <code>'median'</code>, <code>'mean'</code>, <code>'mode'</code>.</dd>
             plt.plot([m_t_start[i], m_t_end[i]], 2*[m_val], c=&#39;k&#39;, linewidth=1, linestyle=&#39;solid&#39;)
 
     # Adjust axes and labels
+    if plot_type == &#39;scatter&#39;:
+        plt.xlim(bins_x[0], bins_x[1])
+        plt.ylim(bins_y[0], bins_y[1])
+
     if time_format == &#39;t_s_rel&#39;:
         plt.xlabel(&#39;Time [s]&#39;)
     elif time_format == &#39;t_h_rel&#39;:
@@ -1016,8 +1084,10 @@ options: <code>'median'</code>, <code>'mean'</code>, <code>'mode'</code>.</dd>
             plt.ylabel(&#39;Counts Per 1 Second&#39;)
         else:
             plt.ylabel(&#39;Counts Per {} Seconds&#39;.format(self.t_int))
-    cbar = plt.colorbar()
-    cbar.set_label(&#39;Entries&#39;)
+
+    if plot_type == &#39;hist2d&#39;:
+        cbar = plt.colorbar()
+        cbar.set_label(&#39;Entries&#39;)
 
     # Output / save
     plt.tight_layout()
@@ -1027,6 +1097,7 @@ options: <code>'median'</code>, <code>'mean'</code>, <code>'mode'</code>.</dd>
     else:
         filename += &#39;counts_vs_&#39;
     filename += time_format
+    filename += &#39;_&#39;+plot_type
     filename += &#39;_{}-{}&#39;.format(self.data[&#39;timestamp&#39;].min(), self.data[&#39;timestamp&#39;].max())
     if m_value is not None:
         filename += &#39;_&#39;+m_value
