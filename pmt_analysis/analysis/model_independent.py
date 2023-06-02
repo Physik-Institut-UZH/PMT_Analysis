@@ -327,7 +327,7 @@ class GainModelIndependent:
         return occupancy_estimator
 
     def get_gain_model_independent(self, areas_led_on: np.ndarray, areas_led_off: np.ndarray,
-                                   occupancy_estimator: dict) -> dict:
+                                   occupancy_estimator: dict, calc_spe_resolution: bool = True) -> dict:
         """Calculate model independent gain value.
 
         Args:
@@ -336,6 +336,8 @@ class GainModelIndependent:
             occupancy_estimator: Output dictionary from `get_occupancy_model_independent` method.
                 Must contain at least the following keys: `occupancy`, `occupancy_err`,
                 `thr_occ_det_integral_fraction`, `tot_entries_b`.
+            calc_spe_resolution: If true, calculate the SPE resolution from mean and variance
+                of the single photoelectron response.
 
         Returns:
             gain_estimator: Dictionary with the following keys:
@@ -345,7 +347,11 @@ class GainModelIndependent:
                 'var_psi': variance of the single photoelectron response,
                 'mean_psi_stat_err': statistical error of mean_psi,
                 'mean_psi_sys_err': systematic error of mean_psi,
-                'mean_psi_err': total error of mean_psi}
+                'mean_psi_err': total error of mean_psi,
+                'spe_resolution': SPE resolution (if `calc_spe_resolution` argument true),
+                'spe_resolution_stat_err': statistical error of spe_resolution (if `calc_spe_resolution` argument true),
+                'spe_resolution_sys_err': statistical error of spe_resolution (if `calc_spe_resolution` argument true),
+                'spe_resolution_err': total error of spe_resolution (if `calc_spe_resolution` argument true)}
         """
         # Get moments of area distributions
         moments_s = self.get_moments(areas_led_on)
@@ -365,8 +371,8 @@ class GainModelIndependent:
         # and the uncertainties of the mean
         mean_psi = (mean_s - mean_b) / occupancy
         var_psi = (var_s - var_b) / occupancy - mean_psi**2
-        mean_psi_stat_err = (occupancy * (mean_psi**2 + var_psi) + 2 * var_b) / (tot_b * occupancy**2) + (
-                mean_psi * mean_psi * (np.exp(occupancy) + 1 - 2 * f_b)) / (f_b * tot_b * occupancy**2)
+        mean_psi_stat_err = np.sqrt((occupancy * (mean_psi**2 + var_psi) + 2 * var_b) / (tot_b * occupancy**2) + (
+                mean_psi * mean_psi * (np.exp(occupancy) + 1 - 2 * f_b)) / (f_b * tot_b * occupancy**2))
         mean_psi_sys_err = (mean_s - mean_b) * occupancy_err / (occupancy**2)
         mean_psi_err = np.sqrt(mean_psi_stat_err**2 + mean_psi_sys_err**2)
 
@@ -374,6 +380,21 @@ class GainModelIndependent:
                           'mean_psi': mean_psi, 'variance_psi': var_psi,
                           'mean_psi_stat_err': mean_psi_stat_err, 'mean_psi_sys_err': mean_psi_sys_err,
                           'mean_psi_err': mean_psi_err}
+
+        # Calculate SPE resolution
+        if calc_spe_resolution:
+            spe_resolution = np.sqrt(var_psi) / mean_psi
+            var_psi_stat_err = np.sqrt(((mean_psi ** 2 - var_psi) ** 2 * (np.exp(occupancy) + 1 - 2 * f_b)) / (
+                        f_b * tot_b * occupancy ** 2))
+            spe_resolution_stat_err = spe_resolution / 2 * var_psi_stat_err / var_psi
+            var_psi_sys_err = np.sqrt(
+                ((var_s - var_b) * occupancy_err / (occupancy ** 2)) ** 2 + (2 * mean_psi * mean_psi_sys_err) ** 2)
+            spe_resolution_sys_err = spe_resolution / 2 * var_psi_sys_err / var_psi
+            spe_resolution_err = np.sqrt(spe_resolution_stat_err ** 2 + spe_resolution_sys_err ** 2)
+            gain_estimator.update({'spe_resolution': spe_resolution,
+                                   'spe_resolution_stat_err': spe_resolution_stat_err,
+                                   'spe_resolution_sys_err': spe_resolution_sys_err,
+                                   'spe_resolution_err': spe_resolution_err})
 
         return gain_estimator
 

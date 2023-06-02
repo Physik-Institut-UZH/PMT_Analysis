@@ -75,7 +75,9 @@ class TestGainModelIndependent:
         x = GainModelIndependent(self.data2, self.data3)
         y = x.compute(self.data2, self.data3)
         for el in ['occupancy', 'occupancy_err', 'thr_occ_det_integral_fraction',
-                   'tot_entries_b', 'gain', 'gain_err', 'mean_psi', 'iterations']:
+                   'tot_entries_b', 'gain', 'gain_err', 'mean_psi', 'iterations',
+                   'spe_resolution', 'spe_resolution_err']:
             assert el in y
         assert round(y['occupancy'], 1) == 1.7
         assert round(y['mean_psi'], -1) == 970
+        assert round(y['spe_resolution'], 1) == 0.4
